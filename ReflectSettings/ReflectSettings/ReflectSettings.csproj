@@ -9,4 +9,8 @@
     <Copyright>Bernd N. Krupinski</Copyright>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Factory\EditableConfigs\" />
+  </ItemGroup>
+
 </Project>
