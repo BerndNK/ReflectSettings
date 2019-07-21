@@ -1,40 +1,40 @@
 ﻿using System.Linq;
 using System.Reflection;
 
-namespace ReflectSettings.Factory.EditableConfigs
+namespace ReflectSettings.EditableConfigs
 {
-    public class EditableInt : EditableConfigBase<int>
+    public class EditableDouble : EditableConfigBase<double>
     {
-        protected override int ParseValue(object value)
+        protected override double ParseValue(object value)
         {
             var minMax = MinMax();
-            var min = (int)minMax.Min;
-            var max = (int) minMax.Max;
-            if (TryCastNumeric(value, out var asInt))
+            var min = (double)minMax.Min;
+            var max = (double) minMax.Max;
+            if (TryCastNumeric(value, out var asDouble))
             {
-                if (IsNumericValueAllowed(asInt))
-                    return asInt;
-                else if(IsValueAllowed(asInt))
+                if (IsNumericValueAllowed(asDouble))
+                    return asDouble;
+                else if(IsValueAllowed(asDouble))
                 {
-                    if (asInt > max)
+                    if (asDouble > max)
                         return max;
 
-                    if (asInt < min)
+                    if (asDouble < min)
                         return min;
                 }
             }
             else
             {
                 var asString = value as string ?? value?.ToString();
-                if (int.TryParse(asString, out asInt))
+                if (double.TryParse(asString, out asDouble))
                 {
-                    if (IsNumericValueAllowed(asInt))
-                        return asInt;
+                    if (IsNumericValueAllowed(asDouble))
+                        return asDouble;
                 }
             }
 
             // given value is not allowed, return the current set value instead
-            if (Value is int currentValue && IsNumericValueAllowed(currentValue))
+            if (Value is double currentValue && IsNumericValueAllowed(currentValue))
                 return currentValue;
 
             var predefinedValues = PredefinedValues().ToList();
@@ -52,7 +52,7 @@ namespace ReflectSettings.Factory.EditableConfigs
             return PredefinedValues().FirstOrDefault();
         }
 
-        public EditableInt(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
+        public EditableDouble(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
             // parse the existing value on the instance
             Value = Value;

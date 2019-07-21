@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using ReflectSettings.Factory.Attributes;
+using ReflectSettings.Attributes;
 
-namespace ReflectSettings.Factory.EditableConfigs
+namespace ReflectSettings.EditableConfigs
 {
     public abstract class EditableConfigBase<T> : IEditableConfig
     {

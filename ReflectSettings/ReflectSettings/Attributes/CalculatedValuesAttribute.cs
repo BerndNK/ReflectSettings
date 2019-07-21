@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace ReflectSettings.Factory.Attributes
+namespace ReflectSettings.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class CalculatedValuesAttribute : Attribute

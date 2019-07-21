@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
-using ReflectSettings.Factory.Attributes;
-using ReflectSettings.Factory.EditableConfigs;
+using ReflectSettings.Attributes;
+using ReflectSettings.EditableConfigs;
 
-namespace ReflectSettingsTests.Factory.EditableConfigs
+namespace ReflectSettingsTests.EditableConfigs
 {
     [TestFixture]
     internal class EditableComplexTests : EditableConfigFactoryTestBase

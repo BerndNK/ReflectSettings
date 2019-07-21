@@ -1,4 +1,4 @@
-﻿using ReflectSettings.Factory;
+﻿using ReflectSettings;
 
 namespace FrontendDemo
 {

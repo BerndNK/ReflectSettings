@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using ReflectSettings.Factory.Attributes;
-using ReflectSettings.Factory.EditableConfigs;
+using ReflectSettings.Attributes;
+using ReflectSettings.EditableConfigs;
 
-namespace ReflectSettings.Factory
+namespace ReflectSettings
 {
     public class EditableConfigFactory
     {
@@ -72,11 +72,22 @@ namespace ReflectSettings.Factory
             {
                 if (propertyInfo.PropertyType.IsEnum)
                     editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
+                else if (IsCollection(propertyInfo))
+                {
+                    var subItemTypes = propertyInfo.PropertyType.GenericTypeArguments;
+                    editableType = typeof(EditableCollection<,>).MakeGenericType(subItemTypes);
+                }
                 else
                     editableType = typeof(EditableComplex<>).MakeGenericType(propertyInfo.PropertyType);
             }
 
             return editableType;
+        }
+
+        private bool IsCollection(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.PropertyType.GetInterfaces()
+                .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
 
         private IEnumerable<PropertyInfo> EditableProperties(Type ofType)

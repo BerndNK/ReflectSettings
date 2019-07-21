@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace ReflectSettings.Factory.EditableConfigs
+namespace ReflectSettings.EditableConfigs
 {
     internal class EditableEnum<T> : EditableConfigBase<T> where T : struct
     {

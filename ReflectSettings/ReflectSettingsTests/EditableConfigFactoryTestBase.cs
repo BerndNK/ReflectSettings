@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ReflectSettings.Factory;
-using ReflectSettings.Factory.EditableConfigs;
+using ReflectSettings;
+using ReflectSettings.EditableConfigs;
 
-namespace ReflectSettingsTests.Factory
+namespace ReflectSettingsTests
 {
     internal abstract class EditableConfigFactoryTestBase
     {

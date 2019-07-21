@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ReflectSettings.Factory.Attributes
+namespace ReflectSettings.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ForbiddenValuesAttribute : Attribute

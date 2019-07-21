@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ReflectSettings.Factory.Attributes
+namespace ReflectSettings.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class MinMaxAttribute : Attribute

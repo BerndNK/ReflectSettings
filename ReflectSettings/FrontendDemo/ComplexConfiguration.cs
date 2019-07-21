@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using ReflectSettings.Factory.Attributes;
+using ReflectSettings.Attributes;
 
 namespace FrontendDemo
 {

@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
-using ReflectSettings.Factory.Attributes;
+using ReflectSettings.Attributes;
 
-namespace ReflectSettingsTests.Factory.Attributes
+namespace ReflectSettingsTests.Attributes
 {
     internal class PredefinedValuesAttributeTests : EditableConfigFactoryTestBase
     {
