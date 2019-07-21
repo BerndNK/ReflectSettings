@@ -1,19 +1,22 @@
 ﻿using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory.Attributes
 {
     [TestFixture]
-    class IgnoredForConfigAttributeTests : EditableConfigFactoryTestBase
+    internal class IgnoredForConfigAttributeTests : EditableConfigFactoryTestBase
     {
         // instantiated through base class
         // ReSharper disable once ClassNeverInstantiated.Local
         private class ClassWithIgnoredProperty
         {
+            [UsedImplicitly]
             public int NotIgnored { get; set; }
 
             [IgnoredForConfig]
+            [UsedImplicitly]
             public int Ignored { get; set; }
         }
 

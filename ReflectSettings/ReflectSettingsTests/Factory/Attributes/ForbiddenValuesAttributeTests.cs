@@ -1,11 +1,12 @@
 ﻿using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory.Attributes
 {
     [TestFixture]
-    class ForbiddenValuesAttributeTests : EditableConfigFactoryTestBase
+    internal class ForbiddenValuesAttributeTests : EditableConfigFactoryTestBase
     {
         private const string SomeRestrictedStringValue = nameof(SomeRestrictedStringValue);
 
@@ -13,26 +14,32 @@ namespace ReflectSettingsTests.Factory.Attributes
         // ReSharper disable once ClassNeverInstantiated.Local
         private class ClassWithForbiddenValues
         {
+            [UsedImplicitly]
             public string AnythingGoes { get; set; }
 
             [ForbiddenValues(0,5,10)]
+            [UsedImplicitly]
             public int IntRestrictions { get; set; }
 
             [ForbiddenValues(SomeRestrictedStringValue)]
+            [UsedImplicitly]
             public string StringRestrictions { get; set; }
 
             [ForbiddenValues(SomeEnum.A, SomeEnum.B)]
+            [UsedImplicitly]
             public SomeEnum EnumRestrictions { get; set; }
 
             
             [ForbiddenValues(null)]
             [PredefinedValues(SomeRestrictedStringValue)]
+            [UsedImplicitly]
             public string NonNullString { get; set; }
 
             internal enum SomeEnum
             {
                 A,
                 B,
+                [UsedImplicitly]
                 C
             }
         }

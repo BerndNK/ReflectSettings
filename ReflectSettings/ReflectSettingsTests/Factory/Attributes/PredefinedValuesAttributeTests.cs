@@ -1,10 +1,11 @@
 ﻿using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory.Attributes
 {
-    class PredefinedValuesAttributeTests : EditableConfigFactoryTestBase
+    internal class PredefinedValuesAttributeTests : EditableConfigFactoryTestBase
     {
         private const string SomePredefinedValue = nameof(SomePredefinedValue);
 
@@ -13,12 +14,15 @@ namespace ReflectSettingsTests.Factory.Attributes
         private class ClassWithPredefinedValues
         {
             [PredefinedValues(5, 10)] 
+            [UsedImplicitly]
             public int IntRestrictions { get; set; }
 
             [PredefinedValues(SomePredefinedValue)]
+            [UsedImplicitly]
             public string StringRestrictions { get; set; }
 
             [PredefinedValues(SomeEnum.A, SomeEnum.B)]
+            [UsedImplicitly]
             public SomeEnum EnumRestrictions { get; set; }
 
             internal enum SomeEnum

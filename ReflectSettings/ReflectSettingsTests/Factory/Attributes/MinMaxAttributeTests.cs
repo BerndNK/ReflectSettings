@@ -1,21 +1,25 @@
 ﻿using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory.Attributes
 {
     [TestFixture]
-    class MinMaxAttributeTests : EditableConfigFactoryTestBase
+    internal class MinMaxAttributeTests : EditableConfigFactoryTestBase
     {
         private class ClassWithNumbers
         {
             [MinMax(20, 25)]
+            [UsedImplicitly]
             public int IntProperty { get; set; }
 
             [MinMax(-30.0, double.MaxValue)]
+            [UsedImplicitly]
             public double NegativeMin { get; set; }
 
             [MinMax(10.0, 5.0)]
+            [UsedImplicitly]
             public double IllegalMinMax { get; set; }
 
         }

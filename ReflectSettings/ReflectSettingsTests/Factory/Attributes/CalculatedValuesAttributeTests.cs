@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory.Attributes
 {
-    class CalculatedValuesAttributeTests : EditableConfigFactoryTestBase
+    internal class CalculatedValuesAttributeTests : EditableConfigFactoryTestBase
     {
         private const string SomeRestrictedValue = nameof(SomeRestrictedValue);
 
@@ -14,24 +15,30 @@ namespace ReflectSettingsTests.Factory.Attributes
         private class ClassWithCalculatedValues
         {
             [CalculatedValues(nameof(IntRestrictionsValues))]
+            [UsedImplicitly]
             public int IntRestrictions { get; set; }
-
+            
+            [UsedImplicitly]
             public IEnumerable<int> IntRestrictionsValues()
             {
                 yield return 5;
             }
 
             [CalculatedValues(nameof(StringRestrictionsValues))]
+            [UsedImplicitly]
             public string StringRestrictions { get; set; }
-
+            
+            [UsedImplicitly]
             public IEnumerable<string> StringRestrictionsValues()
             {
                 yield return SomeRestrictedValue;
             }
 
             [CalculatedValues(nameof(EnumRestrictionsValues))]
+            [UsedImplicitly]
             public SomeEnum EnumRestrictions { get; set; }
-
+            
+            [UsedImplicitly]
             public IEnumerable<SomeEnum> EnumRestrictionsValues()
             {
                 yield return SomeEnum.A;

@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Factory;
 
 namespace ReflectSettingsTests.Factory
 {
     [TestFixture]
-    class EditableConfigFactoryTests
+    internal class EditableConfigFactoryTests
     {
 
         private class ClassWithDiverseProperties
         {
+            [UsedImplicitly]
             public int IntProperty { get; set; }
 
             public string StringProperty { get; set; }
