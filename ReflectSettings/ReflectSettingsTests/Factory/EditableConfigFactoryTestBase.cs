@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ReflectSettings.Factory;
 using ReflectSettings.Factory.EditableConfigs;
 
@@ -12,7 +13,7 @@ namespace ReflectSettingsTests.Factory
             var instance = Activator.CreateInstance(typeof(T));
             var factory = new EditableConfigFactory();
 
-            return factory.Produce(instance);
+            return factory.Produce(instance).ToList();
         }
     }
 }

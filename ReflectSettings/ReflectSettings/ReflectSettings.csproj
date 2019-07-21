@@ -10,7 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Factory\EditableConfigs\" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.6.0-preview6.19303.8" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

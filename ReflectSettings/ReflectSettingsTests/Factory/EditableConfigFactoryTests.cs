@@ -2,41 +2,31 @@
 using System.Linq;
 using NUnit.Framework;
 using ReflectSettings.Factory;
-using ReflectSettings.Factory.Attributes;
 
 namespace ReflectSettingsTests.Factory
 {
     [TestFixture]
     class EditableConfigFactoryTests
     {
-        private class ClassWithIgnoredProperty
-        {
-            public int NotIgnored { get; set; }
-
-            [IgnoredForConfig]
-            public int Ignored { get; set; }
-        }
 
         private class ClassWithDiverseProperties
         {
-            [MinMax(20, 25)]
             public int IntProperty { get; set; }
 
-            [PredefinedValues("OptionA", "OptionB", "OptionC")]
             public string StringProperty { get; set; }
 
             public List<string> ListProperty { get; set; }
+
+            public SubClass SubClass { get; set; }
+
+            public List<SubClass> SubClasses { get; set; }
         }
 
-        [Test]
-        public void IgnoredPropertyShouldNotBeIgnored()
+        private class SubClass
         {
-            var instance = new ClassWithIgnoredProperty();
-            var factory = new EditableConfigFactory();
+            public string SomeString { get; set; }
 
-            var result = factory.Produce(instance);
-
-            Assert.False(result.Any(c => c.PropertyInfo.Name.Equals(nameof(ClassWithIgnoredProperty.Ignored))));
+            public int SomeInt { get; set; }
         }
 
         [Test]

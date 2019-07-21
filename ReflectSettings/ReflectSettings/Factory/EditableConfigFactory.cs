@@ -27,13 +27,16 @@ namespace ReflectSettings.Factory
         {
             if (!TypeToEditableConfig.TryGetValue(propertyInfo.PropertyType, out var editableType))
             {
-                editableType = typeof(EditableComplex);
+                if (propertyInfo.PropertyType.IsEnum)
+                    editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
+                else
+                    editableType = typeof(EditableComplex);
             }
 
             object instance = null;
             try
             {
-                instance = Activator.CreateInstance(editableType, configurable);
+                instance = Activator.CreateInstance(editableType, configurable, propertyInfo);
             }
             catch (Exception e)
             {
@@ -64,117 +67,6 @@ namespace ReflectSettings.Factory
         {
             var ignoredAttribute = arg.GetCustomAttributes(true).OfType<IgnoredForConfigAttribute>().FirstOrDefault();
             return ignoredAttribute == null;
-        }
-    }
-}
-
-namespace ReflectSettings.Factory.EditableConfigs
-{
-    public class EditableDummy : EditableConfigBase<object>
-    {
-        public EditableDummy(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
-        {
-        }
-
-        protected override object ParseValue(object value) => value;
-    }
-
-    public class EditableInt : EditableConfigBase<int>
-    {
-        protected override int ParseValue(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EditableInt(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
-        {
-        }
-    }
-
-    public class EditableDouble : EditableConfigBase<double>
-    {
-        protected override double ParseValue(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EditableDouble(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
-        {
-        }
-    }
-
-    public class EditableString : EditableConfigBase<string>
-    {
-        protected override string ParseValue(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EditableString(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
-        {
-        }
-    }
-
-    public class EditableComplex : EditableConfigBase<object>
-    {
-        protected override object ParseValue(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EditableComplex(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
-        {
-        }
-    }
-
-    public interface IEditableConfig
-    {
-        PropertyInfo PropertyInfo { get; set; }
-
-        object Value { get; set; }
-    }
-
-    public abstract class EditableConfigBase<T> : IEditableConfig
-    {
-        private readonly IList<Attribute> _attributes;
-
-        public object ForInstance { get; set; }
-
-        public PropertyInfo PropertyInfo { get; set; }
-
-        public object Value
-        {
-            get => GetValue();
-            set => SetValue(ParseValue(value));
-        }
-
-        protected abstract T ParseValue(object value);
-
-        private T GetValue() => (T) PropertyInfo.GetValue(ForInstance);
-
-        private void SetValue(T value) => PropertyInfo.SetValue(ForInstance, value);
-
-        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo)
-        {
-            ForInstance = forInstance;
-            PropertyInfo = propertyInfo;
-
-            _attributes = propertyInfo.GetCustomAttributes(true).OfType<Attribute>().ToList();
-        }
-
-        private TAttribute Attribute<TAttribute>() where TAttribute : Attribute =>
-            _attributes.OfType<TAttribute>().FirstOrDefault() ?? Activator.CreateInstance<TAttribute>();
-
-        protected MinMaxAttribute MinMax() => Attribute<MinMaxAttribute>();
-
-        protected IEnumerable<T> PredefinedValues()
-        {
-            var staticValues = Attribute<PredefinedValuesAttribute>();
-            var calculatedValuesAttribute = Attribute<CalculatedValuesAttribute>();
-
-            var calculatedValues = calculatedValuesAttribute.CallMethod(ForInstance);
-
-            return staticValues.Values.Concat(calculatedValues).OfType<T>();
         }
     }
 }

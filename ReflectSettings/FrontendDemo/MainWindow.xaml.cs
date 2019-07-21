@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ReflectSettings.Factory;
 
 namespace FrontendDemo
 {
@@ -23,6 +24,10 @@ namespace FrontendDemo
         public MainWindow()
         {
             InitializeComponent();
+            var fac = new EditableConfigFactory();
+            var result = fac.Produce(new ComplexConfiguration()).ToList();
+
+            Console.WriteLine();
         }
     }
 }

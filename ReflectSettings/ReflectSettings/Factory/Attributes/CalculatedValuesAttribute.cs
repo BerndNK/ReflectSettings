@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,8 +20,14 @@ namespace ReflectSettings.Factory.Attributes
             _memberMethodName = memberMethodName;
         }
 
+        public CalculatedValuesAttribute() : this("")
+        {}
+
         public IEnumerable<object> CallMethod(object fromInstance)
         {
+            if (string.IsNullOrWhiteSpace(_memberMethodName))
+                return Enumerable.Empty<object>();
+
             var targetMethod = TargetMethod(fromInstance);
 
             if (targetMethod == null)
@@ -28,11 +35,16 @@ namespace ReflectSettings.Factory.Attributes
 
             try
             {
-                return targetMethod();
+                var result = targetMethod();
+                if (result == null)
+                    return Enumerable.Empty<object>();
+                else
+                    return targetMethod();
             }
             catch (Exception e)
             {
-                Debug.Fail($"Failed to call method of instance: {fromInstance} with method name: {_memberMethodName}. Exception: {e}");
+                Debug.Fail(
+                    $"Failed to call method of instance: {fromInstance} with method name: {_memberMethodName}. Exception: {e}");
             }
 
             return Enumerable.Empty<object>();
@@ -45,7 +57,14 @@ namespace ReflectSettings.Factory.Attributes
             if (matchingMethod == null)
                 return null;
 
-            return () => matchingMethod.Invoke(fromInstance, new object[0]) as IEnumerable<object>;
+            return () =>
+            {
+                var enumerable = matchingMethod.Invoke(fromInstance, new object[0]) as IEnumerable;
+                if (enumerable == null)
+                    return Enumerable.Empty<object>();
+
+                return enumerable.Cast<object>();
+            };
         }
     }
 }

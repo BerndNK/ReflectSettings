@@ -11,12 +11,15 @@ namespace ReflectSettings.Factory.Attributes
 
         public PredefinedValuesAttribute(params object[] predefinedValues)
         {
-            Values = predefinedValues.ToList();
+            if (predefinedValues == null)
+                Values = new List<object>();
+            else
+                Values = predefinedValues.ToList();
         }
 
-        public PredefinedValuesAttribute(Func<IEnumerable<object>> predefinedValuesResolver)
+        public PredefinedValuesAttribute()
         {
-            Values = predefinedValuesResolver().ToList();
+            Values = new List<object>();
         }
     }
 }
