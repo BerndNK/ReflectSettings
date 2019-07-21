@@ -20,8 +20,10 @@ namespace ReflectSettings.Factory.EditableConfigs
             return currentValue ?? allowedValues.FirstOrDefault();
         }
 
-        public EditableString(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
+        public EditableString(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
+            // parse the existing value on the instance
+            Value = Value;
         }
     }
 }

@@ -1,46 +1,19 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
-using NUnit.Framework;
-using ReflectSettings.Factory;
+﻿using NUnit.Framework;
 
 namespace ReflectSettingsTests.Factory
 {
     [TestFixture]
-    internal class EditableConfigFactoryTests
+    internal class EditableConfigFactoryTests : EditableConfigFactoryTestBase
     {
-
-        private class ClassWithDiverseProperties
-        {
-            [UsedImplicitly]
-            public int IntProperty { get; set; }
-
-            public string StringProperty { get; set; }
-
-            public List<string> ListProperty { get; set; }
-
-            public SubClass SubClass { get; set; }
-
-            public List<SubClass> SubClasses { get; set; }
-        }
-
-        private class SubClass
-        {
-            public string SomeString { get; set; }
-
-            public int SomeInt { get; set; }
-        }
-
+#if !DEBUG
         [Test]
-        public void IntPropertyShouldResultInConfigurableForInt()
+        public void CyclicTypesResultInDummyEditable()
         {
-            var instance = new ClassWithDiverseProperties();
-            var factory = new EditableConfigFactory();
+            var result = Produce<ClassWithCyclicDefinition>();
+            var editable = result.First();
 
-            var result = factory.Produce(instance);
-            var intProperty = result.First(c => c.PropertyInfo.PropertyType == typeof(int));
-
-            Assert.That(intProperty.PropertyInfo.Name, Is.EqualTo(nameof(ClassWithDiverseProperties.IntProperty)));
+            Assert.True(editable is EditableDummy);
         }
+#endif
     }
 }

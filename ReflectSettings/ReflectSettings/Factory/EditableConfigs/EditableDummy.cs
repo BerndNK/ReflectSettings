@@ -4,7 +4,7 @@ namespace ReflectSettings.Factory.EditableConfigs
 {
     public class EditableDummy : EditableConfigBase<object>
     {
-        public EditableDummy(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
+        public EditableDummy(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
         }
 

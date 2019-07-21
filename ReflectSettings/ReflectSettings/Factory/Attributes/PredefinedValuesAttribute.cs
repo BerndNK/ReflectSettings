@@ -12,7 +12,7 @@ namespace ReflectSettings.Factory.Attributes
         public PredefinedValuesAttribute(params object[] predefinedValues)
         {
             if (predefinedValues == null)
-                Values = new List<object>();
+                Values = new List<object> {null};
             else
                 Values = predefinedValues.ToList();
         }

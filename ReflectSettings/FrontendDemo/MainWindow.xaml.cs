@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using ReflectSettings.Factory;
+﻿using ReflectSettings.Factory;
 
 namespace FrontendDemo
 {
@@ -10,9 +8,7 @@ namespace FrontendDemo
         {
             InitializeComponent();
             var fac = new EditableConfigFactory();
-            var result = fac.Produce(new ComplexConfiguration()).ToList();
-
-            Console.WriteLine();
+            fac.Produce(new ComplexConfiguration());
         }
     }
 }

@@ -7,8 +7,10 @@ namespace ReflectSettings.Factory.EditableConfigs
 {
     internal class EditableEnum<T> : EditableConfigBase<T> where T : struct
     {
-        public EditableEnum(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
+        public EditableEnum(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
+            // parse the existing value on the instance
+            Value = Value;
         }
 
         protected override T ParseValue(object value)

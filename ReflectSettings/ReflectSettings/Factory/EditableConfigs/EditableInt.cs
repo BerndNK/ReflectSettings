@@ -52,8 +52,10 @@ namespace ReflectSettings.Factory.EditableConfigs
             return PredefinedValues().FirstOrDefault();
         }
 
-        public EditableInt(object forInstance, PropertyInfo propertyInfo) : base(forInstance, propertyInfo)
+        public EditableInt(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
+            // parse the existing value on the instance
+            Value = Value;
         }
     }
 }

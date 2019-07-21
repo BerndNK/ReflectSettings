@@ -12,7 +12,7 @@ namespace ReflectSettings.Factory
     {
         public IEnumerable<IEditableConfig> Produce(object configurable)
         {
-            var editableProperties = EditableProperties(configurable);
+            var editableProperties = EditableProperties(configurable.GetType());
             return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t));
         }
 
@@ -25,18 +25,15 @@ namespace ReflectSettings.Factory
 
         private IEditableConfig EditableConfigFromPropertyInfo(object configurable, PropertyInfo propertyInfo)
         {
-            if (!TypeToEditableConfig.TryGetValue(propertyInfo.PropertyType, out var editableType))
-            {
-                if (propertyInfo.PropertyType.IsEnum)
-                    editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
-                else
-                    editableType = typeof(EditableComplex);
-            }
+            var editableType = EditableType(propertyInfo);
 
             object instance = null;
             try
             {
-                instance = Activator.CreateInstance(editableType, configurable, propertyInfo);
+                if (IsComplex(propertyInfo) && HasCyclicTypes(propertyInfo, new[] {configurable.GetType()}))
+                    throw new Exception("Cyclic type dependency detected. This is currently not supported.");
+
+                instance = Activator.CreateInstance(editableType, configurable, propertyInfo, this);
             }
             catch (Exception e)
             {
@@ -47,13 +44,44 @@ namespace ReflectSettings.Factory
                 return editableConfig;
 
             Debug.Fail($"Failed to cast type {editableType} to {typeof(IEditableConfig)}.");
-            return new EditableDummy(configurable, propertyInfo);
+            return new EditableDummy(configurable, propertyInfo, this);
         }
 
-        private IEnumerable<PropertyInfo> EditableProperties(object configurable)
+        private bool HasCyclicTypes(PropertyInfo propertyInfo, IList<Type> previousTypes)
         {
-            var type = configurable.GetType();
-            var allProperties = type.GetProperties();
+            var targetType = propertyInfo.PropertyType;
+            var subTypes = EditableProperties(targetType);
+
+            foreach (var subType in subTypes.Where(IsComplex))
+            {
+                if (previousTypes.Any(t => t == subType.PropertyType))
+                    return true;
+
+                if (HasCyclicTypes(subType, previousTypes.Concat(new[] {subType.PropertyType}).ToList()))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsComplex(PropertyInfo propertyInfo) => propertyInfo.PropertyType.IsClass;
+
+        private Type EditableType(PropertyInfo propertyInfo)
+        {
+            if (!TypeToEditableConfig.TryGetValue(propertyInfo.PropertyType, out var editableType))
+            {
+                if (propertyInfo.PropertyType.IsEnum)
+                    editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
+                else
+                    editableType = typeof(EditableComplex<>).MakeGenericType(propertyInfo.PropertyType);
+            }
+
+            return editableType;
+        }
+
+        private IEnumerable<PropertyInfo> EditableProperties(Type ofType)
+        {
+            var allProperties = ofType.GetProperties();
 
             return allProperties.Where(HasGetterAndSetter).Where(IsNotIgnored);
         }

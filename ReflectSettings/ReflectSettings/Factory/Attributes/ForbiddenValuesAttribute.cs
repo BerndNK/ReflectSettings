@@ -12,7 +12,7 @@ namespace ReflectSettings.Factory.Attributes
         public ForbiddenValuesAttribute(params object[] forbiddenValues)
         {
             if (forbiddenValues == null)
-                ForbiddenValues = new List<object>();
+                ForbiddenValues = new List<object> {null};
             else
                 ForbiddenValues = forbiddenValues.ToList();
         }

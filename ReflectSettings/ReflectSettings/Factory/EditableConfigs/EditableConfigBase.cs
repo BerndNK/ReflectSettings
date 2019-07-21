@@ -10,6 +10,8 @@ namespace ReflectSettings.Factory.EditableConfigs
     {
         private readonly IList<Attribute> _attributes;
 
+        protected EditableConfigFactory Factory { get; }
+
         public object ForInstance { get; set; }
 
         public PropertyInfo PropertyInfo { get; set; }
@@ -26,15 +28,13 @@ namespace ReflectSettings.Factory.EditableConfigs
 
         private void SetValue(T value) => PropertyInfo.SetValue(ForInstance, value);
 
-        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo)
+        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory)
         {
             ForInstance = forInstance;
             PropertyInfo = propertyInfo;
+            Factory = factory;
 
             _attributes = propertyInfo.GetCustomAttributes(true).OfType<Attribute>().ToList();
-
-            // parse the existing value on the instance
-            Value = Value;
         }
 
         private TAttribute Attribute<TAttribute>() where TAttribute : Attribute =>
@@ -49,7 +49,15 @@ namespace ReflectSettings.Factory.EditableConfigs
 
             var calculatedValues = calculatedValuesAttribute.CallMethod(ForInstance);
 
-            return staticValues.Values.Concat(calculatedValues).OfType<T>().Except(ForbiddenValues());
+            var concat = staticValues.Values.Concat(calculatedValues).ToList();
+            var toReturn = concat.OfType<T>().Except(ForbiddenValues()).ToList();
+
+            if (concat.Any(x => x == null))
+            {
+                toReturn.Add(default);
+            }
+
+            return toReturn;
         }
 
         protected IEnumerable<T> ForbiddenValues()
@@ -94,7 +102,8 @@ namespace ReflectSettings.Factory.EditableConfigs
                 else
                     result = (T) value;
                 return true;
-            }catch(Exception)
+            }
+            catch (Exception)
             {
                 result = default;
                 return false;
