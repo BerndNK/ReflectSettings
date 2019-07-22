@@ -53,6 +53,21 @@ namespace ReflectSettingsTests.Attributes
             }
         }
 
+        private class ClassWithConfigurableValues
+        {
+            [UsedImplicitly]
+            [CalculatedValues(nameof(SelectedValueValues))]
+            public string SelectedValue { get; set; }
+
+            public int SomeInt { get; set; }
+            
+            [IgnoredForConfig]
+            public List<string> DefinedValues { get; } = new List<string>();
+
+            [UsedImplicitly]
+            public IEnumerable<string> SelectedValueValues() => DefinedValues;
+        }
+
         [Test]
         public void IntPropertyWithCalculatedValuesDoesAllowCalculatedValue()
         {
@@ -164,6 +179,19 @@ namespace ReflectSettingsTests.Attributes
                 x.PropertyInfo.Name.Equals(nameof(ClassWithCalculatedValues.EnumRestrictions)));
 
             Assert.That(toTest.Value, Is.EqualTo(ClassWithCalculatedValues.SomeEnum.A));
+        }
+
+        [Test]
+        public void UpdatingValuesDoesTriggerRecalculationOfPredefinedValues()
+        {
+            var result = Produce<ClassWithConfigurableValues>(out var instance);
+
+            const string someString = nameof(someString);
+            instance.DefinedValues.Add(someString);
+
+            result.First(x => x.PropertyInfo.Name == nameof(ClassWithConfigurableValues.SomeInt)).Value = 5;
+
+            Assert.That(instance.SelectedValue, Is.EqualTo(someString));
         }
     }
 }

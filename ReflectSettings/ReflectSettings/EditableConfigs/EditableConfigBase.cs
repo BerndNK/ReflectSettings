@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using ReflectSettings.Annotations;
 using ReflectSettings.Attributes;
 
 namespace ReflectSettings.EditableConfigs
@@ -9,6 +14,7 @@ namespace ReflectSettings.EditableConfigs
     public abstract class EditableConfigBase<T> : IEditableConfig
     {
         private readonly IList<Attribute> _attributes;
+        private ChangeTrackingManager _changeTrackingManager;
 
         protected EditableConfigFactory Factory { get; }
 
@@ -19,7 +25,14 @@ namespace ReflectSettings.EditableConfigs
         public object Value
         {
             get => GetValue();
-            set => SetValue(ParseValue(value));
+            set
+            {
+                var newValue = ParseValue(value);
+                if (Equals(newValue, Value))
+                    return;
+                SetValue(newValue);
+                OnPropertyChanged();
+            }
         }
 
         protected abstract T ParseValue(object value);
@@ -35,6 +48,7 @@ namespace ReflectSettings.EditableConfigs
             Factory = factory;
 
             _attributes = propertyInfo.GetCustomAttributes(true).OfType<Attribute>().ToList();
+            UpdateCalculatedValues();
         }
 
         private TAttribute Attribute<TAttribute>() where TAttribute : Attribute =>
@@ -42,7 +56,54 @@ namespace ReflectSettings.EditableConfigs
 
         protected MinMaxAttribute MinMax() => Attribute<MinMaxAttribute>();
 
-        protected IEnumerable<T> PredefinedValues()
+        public ObservableCollection<object> PredefinedValues { get; } = new ObservableCollection<object>();
+
+        public bool HasPredefinedValues => _attributes.OfType<PredefinedValuesAttribute>().FirstOrDefault() != null ||
+                                           _attributes.OfType<CalculatedValuesAttribute>().FirstOrDefault() != null ||
+                                           PropertyInfo.PropertyType.IsEnum;
+
+        public ChangeTrackingManager ChangeTrackingManager
+        {
+            get => _changeTrackingManager;
+            set
+            {
+                _changeTrackingManager?.Remove(this);
+
+                _changeTrackingManager = value;
+
+                _changeTrackingManager?.Add(this);
+            }
+        }
+
+        public void UpdateCalculatedValues()
+        {
+            if (!HasPredefinedValues)
+                return;
+
+            var existingValues = PredefinedValues.ToList();
+            var newValues = GetPredefinedValues().OfType<object>().ToList();
+
+            var toRemove = existingValues.Except(newValues);
+            var toAdd = newValues.Except(existingValues);
+
+            var somethingChanged = false;
+            foreach (var value in toAdd)
+            {
+                PredefinedValues.Add(value);
+                somethingChanged = true;
+            }
+
+            foreach (var value in toRemove)
+            {
+                PredefinedValues.Remove(value);
+                somethingChanged = true;
+            }
+
+            if (somethingChanged)
+                Value = Value;
+        }
+
+        protected IEnumerable<T> GetPredefinedValues()
         {
             var staticValues = Attribute<PredefinedValuesAttribute>();
             var calculatedValuesAttribute = Attribute<CalculatedValuesAttribute>();
@@ -72,7 +133,7 @@ namespace ReflectSettings.EditableConfigs
             if (value == null)
                 return false;
 
-            var predefinedValues = PredefinedValues().ToList();
+            var predefinedValues = GetPredefinedValues().ToList();
             var isValueAllowed = predefinedValues.Count == 0 || predefinedValues.Any(v => v.Equals(value));
             var isValueForbidden = ForbiddenValues().Any(v => v.Equals(value));
 
@@ -98,7 +159,7 @@ namespace ReflectSettings.EditableConfigs
             {
                 var castMethod = CastMethod();
                 if (castMethod != null)
-                    result = (T) castMethod(value);
+                    result = (T) castMethod(value is string asString ? asString.Replace(',','.') : value);
                 else
                     result = (T) value;
                 return true;
@@ -115,15 +176,23 @@ namespace ReflectSettings.EditableConfigs
             var type = typeof(T);
 
             if (type == typeof(double))
-                return x => Convert.ToDouble(x);
+                return x => Convert.ToDouble(x, CultureInfo.InvariantCulture);
 
             if (type == typeof(int))
-                return x => Convert.ToInt32(x);
+                return x => Convert.ToInt32(x, CultureInfo.InvariantCulture);
 
             if (type == typeof(float))
-                return x => (float) Convert.ToDouble(x);
+                return x => (float) Convert.ToDouble(x, CultureInfo.InvariantCulture);
 
             return x => x;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

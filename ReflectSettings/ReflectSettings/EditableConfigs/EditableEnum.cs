@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace ReflectSettings.EditableConfigs
 {
-    internal class EditableEnum<T> : EditableConfigBase<T> where T : struct
+    internal class EditableEnum<T> : EditableConfigBase<T>, IEditableEnum where T : struct
     {
         public EditableEnum(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {
@@ -28,7 +28,7 @@ namespace ReflectSettings.EditableConfigs
                 return currentValue;
 
             // current value is not the enum type, try to use the first PredefinedValue or default
-            var allowedValues = PredefinedValues().ToList();
+            var allowedValues = GetPredefinedValues().ToList();
             if (allowedValues.Count == 0)
                 return PossibleEnumValues().FirstOrDefault(IsEnumValueAllowed);
             else
@@ -54,5 +54,7 @@ namespace ReflectSettings.EditableConfigs
                 ? Enum.GetValues(type).OfType<T>()
                 : Enumerable.Empty<T>();
         }
+
+        public IEnumerable<object> EnumValues => PossibleEnumValues().Cast<object>();
     }
 }

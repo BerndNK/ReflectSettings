@@ -23,21 +23,12 @@ namespace ReflectSettings.EditableConfigs
                         return min;
                 }
             }
-            else
-            {
-                var asString = value as string ?? value?.ToString();
-                if (double.TryParse(asString, out asDouble))
-                {
-                    if (IsNumericValueAllowed(asDouble))
-                        return asDouble;
-                }
-            }
 
             // given value is not allowed, return the current set value instead
             if (Value is double currentValue && IsNumericValueAllowed(currentValue))
                 return currentValue;
 
-            var predefinedValues = PredefinedValues().ToList();
+            var predefinedValues = GetPredefinedValues().ToList();
             if (predefinedValues.Count == 0)
             {
                 var newValue = min;
@@ -49,7 +40,7 @@ namespace ReflectSettings.EditableConfigs
                 return newValue;
             }
 
-            return PredefinedValues().FirstOrDefault();
+            return GetPredefinedValues().FirstOrDefault();
         }
 
         public EditableDouble(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)

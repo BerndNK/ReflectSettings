@@ -16,7 +16,7 @@ namespace ReflectSettings.EditableConfigs
             var currentValue = Value as string ?? Value?.ToString();
 
             // if current value is also null, try to use the first PredefinedValue 
-            var allowedValues = PredefinedValues().ToList();
+            var allowedValues = GetPredefinedValues().ToList();
             return currentValue ?? allowedValues.FirstOrDefault();
         }
 

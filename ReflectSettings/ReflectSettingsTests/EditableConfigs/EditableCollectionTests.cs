@@ -27,19 +27,29 @@ namespace ReflectSettingsTests.EditableConfigs
         [Test]
         public void ListPropertyResultsInCollectionEditable()
         {
-            var result = Produce<ClassWithListProperty>();
-            var collectionProperty = result.First(c => c.PropertyInfo.Name == nameof(ClassWithListProperty.StringList)) as EditableCollection<List<string>, string>;
+            var result = Produce<ClassWithListProperty>(out var instance);
+
+            Assert.That(instance.StringList, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void ListEdtiableCanAddItems()
+        {
+            var result = Produce<ClassWithListProperty>(out var instance);
+            var collectionProperty = (ICollection<string>) result.First(c => c.PropertyInfo.Name == nameof(ClassWithListProperty.StringList));
             
-            Assert.That(collectionProperty, Is.Not.Null);
+            collectionProperty.Add("");
+
+            Assert.That(instance.StringList.Count, Is.EqualTo(1));
         }
 
         [Test]
         public void ObservableCollectionPropertyResultsInCollectionEditable()
         {
-            var result = Produce<ClassWithListProperty>();
-            var collectionProperty = result.First(c => c.PropertyInfo.Name == nameof(ClassWithObservableCollectionProperty.StringList)) as EditableCollection<ObservableCollection<string>, string>;
+            var result = Produce<ClassWithListProperty>(out var instance);
             
-            Assert.That(collectionProperty, Is.Not.Null);
+            Assert.That(instance.StringList, Is.Not.Null);
         }
     }
 }

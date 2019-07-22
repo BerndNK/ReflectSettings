@@ -37,7 +37,7 @@ namespace ReflectSettings.EditableConfigs
             if (Value is int currentValue && IsNumericValueAllowed(currentValue))
                 return currentValue;
 
-            var predefinedValues = PredefinedValues().ToList();
+            var predefinedValues = GetPredefinedValues().ToList();
             if (predefinedValues.Count == 0)
             {
                 var newValue = min;
@@ -49,7 +49,7 @@ namespace ReflectSettings.EditableConfigs
                 return newValue;
             }
 
-            return PredefinedValues().FirstOrDefault();
+            return GetPredefinedValues().FirstOrDefault();
         }
 
         public EditableInt(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)

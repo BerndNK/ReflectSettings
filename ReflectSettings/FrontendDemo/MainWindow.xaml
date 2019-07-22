@@ -3,9 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FrontendDemo"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+        Title="MainWindow" Height="450" Width="800" Background="#2B2E33">
+    <Window.Resources>
+        <ResourceDictionary Source="EditableConfigResources.xaml"/>
+    </Window.Resources>
+    <DockPanel>
+        <Button Width="80" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Save" Click="ButtonBase_OnClick" DockPanel.Dock="Top"/>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl ItemsSource="{Binding Editables}"
+                      ItemTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

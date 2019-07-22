@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
 namespace ReflectSettings.EditableConfigs
 {
-    public class EditableComplex<T> : EditableConfigBase<T> where T : class
+    public class EditableComplex<T> : EditableConfigBase<T>, IEditableComplex where T : class
     {
         protected override T ParseValue(object value)
         {
@@ -23,8 +23,12 @@ namespace ReflectSettings.EditableConfigs
             }
 
             // if null is allowed, return null
-            if (PredefinedValues().Any(x => x == null))
+            var predefinedValues = GetPredefinedValues().ToList();
+            if (predefinedValues.Any(x => x == null))
                 return null;
+
+            if (predefinedValues.Any())
+                return predefinedValues.First();
 
             // otherwise create a new instance
             var newInstance = InstantiateObject();
@@ -34,13 +38,20 @@ namespace ReflectSettings.EditableConfigs
 
         private void CreateSubEditables(T fromInstance)
         {
-            if (fromInstance == null)
-                SubEditables = new List<IEditableConfig>();
-            else
-                SubEditables = Factory.Produce(fromInstance).ToList();
+            SubEditables.Clear();
+            if (fromInstance != null)
+            {
+                var subEditables = Factory.Produce(fromInstance).ToList();
+                foreach (var item in subEditables)
+                {
+                    item.ChangeTrackingManager = ChangeTrackingManager;
+                    SubEditables.Add(item);
+                }
+            }
+                
         }
 
-        public IList<IEditableConfig> SubEditables { get; private set; } = new List<IEditableConfig>();
+        public ObservableCollection<IEditableConfig> SubEditables { get; private set; } = new ObservableCollection<IEditableConfig>();
 
         public EditableComplex(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
         {

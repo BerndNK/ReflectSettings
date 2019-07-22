@@ -10,10 +10,37 @@ namespace ReflectSettings
 {
     public class EditableConfigFactory
     {
-        public IEnumerable<IEditableConfig> Produce(object configurable)
+        private class InstanceWrapper<T>
         {
-            var editableProperties = EditableProperties(configurable.GetType());
-            return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t));
+            public InstanceWrapper(T value)
+            {
+                Value = value;
+            }
+
+            public T Value { get; set; }
+        }
+
+        
+
+        /// <summary>
+        /// Creates IEditableConfig for each public get and set-able property of the given instance.
+        /// Optionally gives a IEditableConfig for the given instance itself, instead of its properties.
+        /// </summary>
+        public IEnumerable<IEditableConfig> Produce(object configurable, bool useConfigurableItself = false)
+        {
+            var changeTrackingManager = new ChangeTrackingManager();
+            if (useConfigurableItself)
+            {
+                var wrapperType = typeof(InstanceWrapper<>).MakeGenericType(configurable.GetType());
+                var wrapper = Activator.CreateInstance(wrapperType, configurable);
+                return new List<IEditableConfig>
+                    {EditableConfigFromPropertyInfo(wrapper, wrapper.GetType().GetProperty(nameof(InstanceWrapper<int>.Value)), changeTrackingManager)};
+            }
+            else
+            {
+                var editableProperties = EditableProperties(configurable.GetType());
+                return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t, changeTrackingManager));
+            }
         }
 
         public IDictionary<Type, Type> TypeToEditableConfig { get; } = new Dictionary<Type, Type>
@@ -23,7 +50,7 @@ namespace ReflectSettings
             {typeof(string), typeof(EditableString)}
         };
 
-        private IEditableConfig EditableConfigFromPropertyInfo(object configurable, PropertyInfo propertyInfo)
+        private IEditableConfig EditableConfigFromPropertyInfo(object configurable, PropertyInfo propertyInfo, ChangeTrackingManager changeTrackingManager)
         {
             var editableType = EditableType(propertyInfo);
 
@@ -41,7 +68,10 @@ namespace ReflectSettings
             }
 
             if (instance is IEditableConfig editableConfig)
+            {
+                editableConfig.ChangeTrackingManager = changeTrackingManager;
                 return editableConfig;
+            }
 
             Debug.Fail($"Failed to cast type {editableType} to {typeof(IEditableConfig)}.");
             return new EditableDummy(configurable, propertyInfo, this);
@@ -74,8 +104,10 @@ namespace ReflectSettings
                     editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
                 else if (IsCollection(propertyInfo))
                 {
-                    var subItemTypes = propertyInfo.PropertyType.GenericTypeArguments;
-                    editableType = typeof(EditableCollection<,>).MakeGenericType(subItemTypes);
+                    var subItemType = propertyInfo.PropertyType.GenericTypeArguments.First();
+
+                    editableType =
+                        typeof(EditableCollection<,>).MakeGenericType(subItemType, propertyInfo.PropertyType);
                 }
                 else
                     editableType = typeof(EditableComplex<>).MakeGenericType(propertyInfo.PropertyType);

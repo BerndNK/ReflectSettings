@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using JetBrains.Annotations;
 using ReflectSettings.Attributes;
 
@@ -17,7 +18,7 @@ namespace FrontendDemo
         public ApplicationMode ApplicationMode { get; set; }
         
         [UsedImplicitly]
-        public List<Curreny> Currencies { get; set; }
+        public ObservableCollection<Curreny> Currencies { get; set; }
 
         [CalculatedValues(nameof(ActiveCurrencyPossibleValues))]
         [UsedImplicitly]
@@ -25,20 +26,7 @@ namespace FrontendDemo
         
         [UsedImplicitly]
         public IEnumerable<object> ActiveCurrencyPossibleValues() => Currencies;
-    }
 
-    internal enum ApplicationMode
-    {
-        Default,
-        Turbo,
-        Debug
-    }
-
-    internal class Curreny
-    {
-        public string Name { get; set; }
-
-        [MinMax]
-        public double DollarToCurrencyFactory { get; set; }
+        public Curreny SomeCurrencyThatJustIsHereForDemonstrationPurposes { get; set; }
     }
 }
