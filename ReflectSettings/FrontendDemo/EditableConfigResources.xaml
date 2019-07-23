@@ -22,13 +22,19 @@
         <TextBlock Text="{Binding DisplayName}" Foreground="Black" FontWeight="Bold"/>
     </DataTemplate>
 
+    <DataTemplate x:Key="EditableBoolTemplate" DataType="{x:Type editableConfigs:EditableInt}">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+                       Foreground="AliceBlue" />
+            <CheckBox IsChecked="{Binding Value, Mode=TwoWay}"/>
+        </DockPanel>
+    </DataTemplate>
     <DataTemplate x:Key="EditableIntTemplate" DataType="{x:Type editableConfigs:EditableInt}">
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <TextBox Text="{Binding Value, Mode=TwoWay}" />
         </DockPanel>
-
     </DataTemplate>
     <DataTemplate x:Key="EditableDoubleTemplate" DataType="{x:Type editableConfigs:EditableDouble}">
         <DockPanel>

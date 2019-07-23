@@ -25,6 +25,9 @@ namespace ReflectSettingsTests.Attributes
             [UsedImplicitly]
             public SomeEnum EnumRestrictions { get; set; }
 
+            [PredefinedValues(true)]
+            public bool BoolRestrictions { get; set; }
+
             internal enum SomeEnum
             {
                 A,
@@ -112,6 +115,19 @@ namespace ReflectSettingsTests.Attributes
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));
         }
 
+        [Test]
+        public void BoolPropertyWithPredefinedValuesDoesNotAllowAnythingElse()
+        {
+            var result = Produce<ClassWithPredefinedValues>();
+
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithPredefinedValues.BoolRestrictions)));
+
+            toTest.Value = false;
+
+            Assert.That(toTest.Value, Is.Not.EqualTo(false));
+        }
+
 
         [Test]
         public void IntPropertyWithPredefinedValuesIsInitializedWithAPredefinedValue()
@@ -144,6 +160,17 @@ namespace ReflectSettingsTests.Attributes
                 x.PropertyInfo.Name.Equals(nameof(ClassWithPredefinedValues.EnumRestrictions)));
 
             Assert.That(toTest.Value, Is.EqualTo(ClassWithPredefinedValues.SomeEnum.A));
+        }
+
+        [Test]
+        public void BoolPropertyWithPredefinedValuesIsInitializedWithAPredefinedValue()
+        {
+            var result = Produce<ClassWithPredefinedValues>();
+
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithPredefinedValues.BoolRestrictions)));
+
+            Assert.That(toTest.Value, Is.EqualTo(true));
         }
     }
 }

@@ -45,7 +45,8 @@ namespace ReflectSettings
         {
             {typeof(int), typeof(EditableInt)},
             {typeof(double), typeof(EditableDouble)},
-            {typeof(string), typeof(EditableString)}
+            {typeof(string), typeof(EditableString)},
+            {typeof(bool), typeof(EditableBool)}
         };
 
         private IEditableConfig EditableConfigFromPropertyInfo(object configurable, PropertyInfo propertyInfo, ChangeTrackingManager changeTrackingManager)

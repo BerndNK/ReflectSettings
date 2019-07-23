@@ -26,6 +26,9 @@ namespace FrontendDemo
         
         [UsedImplicitly]
         public IEnumerable<object> ActiveCurrencyPossibleValues() => Currencies;
+        
+        [UsedImplicitly]
+        public bool UseLightTheme { get; set; }
 
         public Curreny SomeCurrencyThatJustIsHereForDemonstrationPurposes { get; set; }
     }

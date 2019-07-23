@@ -35,6 +35,9 @@ namespace ReflectSettingsTests.Attributes
             [UsedImplicitly]
             public string NonNullString { get; set; }
 
+            [ForbiddenValues(false)]
+            public bool NotFalseBool { get; set; }
+
             internal enum SomeEnum
             {
                 A,
@@ -93,6 +96,17 @@ namespace ReflectSettingsTests.Attributes
         }
         
         [Test]
+        public void BoolPropertyWithForbiddenValuesDoesNotAllowForbidden()
+        {
+            var result = Produce<ClassWithForbiddenValues>();
+
+            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.NotFalseBool)));
+            toTest.Value = false;
+
+            Assert.That(toTest.Value, Is.Not.EqualTo(false));
+        }
+        
+        [Test]
         public void IntPropertyWithForbiddenGetsInitializedWithANonForbiddenValue()
         {
             var result = Produce<ClassWithForbiddenValues>();
@@ -121,7 +135,16 @@ namespace ReflectSettingsTests.Attributes
 
             Assert.That(toTest.Value, Is.Not.EqualTo(ClassWithForbiddenValues.SomeEnum.A));
         }
+        
+        [Test]
+        public void BoolPropertyWithForbiddenValuesGetsInitializedWithANonForbiddenValue()
+        {
+            var result = Produce<ClassWithForbiddenValues>();
 
+            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.NotFalseBool)));
+
+            Assert.That(toTest.Value, Is.Not.EqualTo(false));
+        }
         
         [Test]
         public void StringWithForbiddenNullValueShouldResultInFirstPredefinedValue()

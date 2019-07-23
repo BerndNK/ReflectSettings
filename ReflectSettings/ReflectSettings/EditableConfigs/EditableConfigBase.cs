@@ -170,15 +170,15 @@ namespace ReflectSettings.EditableConfigs
             return numericValue >= minMax.Min && numericValue <= minMax.Max;
         }
 
-        protected bool TryCastNumeric(object value, out T result)
+        protected bool TryCastNumeric<TNumeric>(object value, out TNumeric result)
         {
             try
             {
-                var castMethod = CastMethod();
+                var castMethod = CastMethod<TNumeric>();
                 if (castMethod != null)
-                    result = (T) castMethod(value is string asString ? asString.Replace(',','.') : value);
+                    result = (TNumeric) castMethod(value is string asString ? asString.Replace(',','.') : value);
                 else
-                    result = (T) value;
+                    result = (TNumeric) value;
                 return true;
             }
             catch (Exception)
@@ -188,9 +188,9 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
-        private Func<object, object> CastMethod()
+        private Func<object, object> CastMethod<TNumeric>()
         {
-            var type = typeof(T);
+            var type = typeof(TNumeric);
 
             if (type == typeof(double))
                 return x => Convert.ToDouble(x, CultureInfo.InvariantCulture);

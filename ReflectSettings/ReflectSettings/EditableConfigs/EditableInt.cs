@@ -10,7 +10,7 @@ namespace ReflectSettings.EditableConfigs
             var minMax = MinMax();
             var min = (int)minMax.Min;
             var max = (int) minMax.Max;
-            if (TryCastNumeric(value, out var asInt))
+            if (TryCastNumeric<int>(value, out var asInt))
             {
                 if (IsNumericValueAllowed(asInt))
                     return asInt;
