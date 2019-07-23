@@ -31,7 +31,7 @@ namespace ReflectSettings.EditableConfigs
                 return predefinedValues.First();
 
             // otherwise create a new instance
-            var newInstance = InstantiateObject();
+            var newInstance = InstantiateObject<T>();
             CreateSubEditables(newInstance);
             return newInstance;
         }
@@ -41,7 +41,7 @@ namespace ReflectSettings.EditableConfigs
             SubEditables.Clear();
             if (fromInstance != null)
             {
-                var subEditables = Factory.Produce(fromInstance).ToList();
+                var subEditables = Factory.Reflect(fromInstance).ToList();
                 foreach (var item in subEditables)
                 {
                     item.ChangeTrackingManager = ChangeTrackingManager;
@@ -53,7 +53,7 @@ namespace ReflectSettings.EditableConfigs
 
         public ObservableCollection<IEditableConfig> SubEditables { get; private set; } = new ObservableCollection<IEditableConfig>();
 
-        public EditableComplex(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
+        public EditableComplex(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
         {
             var hasConstructorWithNoParameter = HasConstructorWithNoParameter();
             if (!hasConstructorWithNoParameter)
@@ -66,11 +66,6 @@ namespace ReflectSettings.EditableConfigs
 
             // parse the existing value on the instance
             Value = Value;
-        }
-
-        private T InstantiateObject()
-        {
-            return Activator.CreateInstance<T>();
         }
 
         private bool HasConstructorWithNoParameter()

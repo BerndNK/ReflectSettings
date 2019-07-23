@@ -16,7 +16,7 @@ namespace ReflectSettings.EditableConfigs
         private readonly IList<Attribute> _attributes;
         private ChangeTrackingManager _changeTrackingManager;
 
-        protected EditableConfigFactory Factory { get; }
+        protected SettingsFactory Factory { get; }
 
         public object ForInstance { get; set; }
 
@@ -41,7 +41,7 @@ namespace ReflectSettings.EditableConfigs
 
         private void SetValue(T value) => PropertyInfo.SetValue(ForInstance, value);
 
-        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory)
+        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory)
         {
             ForInstance = forInstance;
             PropertyInfo = propertyInfo;
@@ -119,6 +119,23 @@ namespace ReflectSettings.EditableConfigs
             }
 
             return toReturn;
+        }
+
+        protected TObject InstantiateObject<TObject>()
+        {
+            var targetType = typeof(TObject);
+            var typeToInstantiate = targetType;
+
+            if (targetType.IsInterface)
+                typeToInstantiate = PossibleTypesFor(targetType).First();
+
+            return (TObject) Activator.CreateInstance(typeToInstantiate);
+        }
+
+        protected IEnumerable<Type> PossibleTypesFor(Type interfaceType)
+        {
+            var typesForInstantiation = Attribute<TypesForInstantiationAttribute>().Types;
+            return typesForInstantiation.Where(interfaceType.IsAssignableFrom);
         }
 
         protected IEnumerable<T> ForbiddenValues()

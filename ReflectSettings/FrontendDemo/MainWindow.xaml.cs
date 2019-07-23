@@ -19,12 +19,12 @@ namespace FrontendDemo
             DataContext = this;
             Editables = new ObservableCollection<IEditableConfig>();
             InitializeComponent();
-            var fac = new EditableConfigFactory();
+            var fac = new SettingsFactory();
             _complexConfiguration = new ComplexConfiguration();
             if (File.Exists(JsonFilePath))
                 _complexConfiguration = JsonConvert.DeserializeObject<ComplexConfiguration>(File.ReadAllText(JsonFilePath));
 
-            var editableConfigs = fac.Produce(_complexConfiguration);
+            var editableConfigs = fac.Reflect(_complexConfiguration);
 
             foreach (var config in editableConfigs)
             {

@@ -8,7 +8,7 @@ using ReflectSettings.EditableConfigs;
 
 namespace ReflectSettings
 {
-    public class EditableConfigFactory
+    public class SettingsFactory
     {
         private class InstanceWrapper<T>
         {
@@ -19,14 +19,12 @@ namespace ReflectSettings
 
             public T Value { get; set; }
         }
-
         
-
         /// <summary>
         /// Creates IEditableConfig for each public get and set-able property of the given instance.
         /// Optionally gives a IEditableConfig for the given instance itself, instead of its properties.
         /// </summary>
-        public IEnumerable<IEditableConfig> Produce(object configurable, bool useConfigurableItself = false)
+        public IEnumerable<IEditableConfig> Reflect(object configurable, bool useConfigurableItself = false)
         {
             var changeTrackingManager = new ChangeTrackingManager();
             if (useConfigurableItself)
@@ -118,8 +116,10 @@ namespace ReflectSettings
 
         private bool IsCollection(PropertyInfo propertyInfo)
         {
-            return propertyInfo.PropertyType.GetInterfaces()
-                .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+            var isICollectionItself = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>);
+            var inheritsICollection = propertyInfo.PropertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+
+            return isICollectionItself || inheritsICollection;
         }
 
         private IEnumerable<PropertyInfo> EditableProperties(Type ofType)

@@ -16,9 +16,9 @@ namespace ReflectSettingsTests
         protected IEnumerable<IEditableConfig> Produce<T>(out T instance)
         {
             instance = (T) Activator.CreateInstance(typeof(T));
-            var factory = new EditableConfigFactory();
+            var factory = new SettingsFactory();
 
-            return factory.Produce(instance).ToList();
+            return factory.Reflect(instance).ToList();
         }
     }
 }

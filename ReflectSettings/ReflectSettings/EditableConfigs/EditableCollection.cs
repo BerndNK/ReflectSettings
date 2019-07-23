@@ -11,7 +11,7 @@ namespace ReflectSettings.EditableConfigs
     public class EditableCollection<TItem, TCollection> : EditableConfigBase<TCollection>, IEditableCollection,
         ICollection<TItem> where TCollection : class, ICollection<TItem>
     {
-        public EditableCollection(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(
+        public EditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
             forInstance, propertyInfo, factory)
         {
             Value = Value;
@@ -22,7 +22,7 @@ namespace ReflectSettings.EditableConfigs
 
         private void AddNewItem()
         {
-            Add(Activator.CreateInstance<TItem>());
+            Add(InstantiateObject<TItem>());
         }
 
         protected override TCollection ParseValue(object value)
@@ -45,7 +45,7 @@ namespace ReflectSettings.EditableConfigs
                 return null;
 
             // otherwise create a new instance
-            var newInstance = InstantiateObject();
+            var newInstance = InstantiateObject<TCollection>();
             CreateSubEditables(newInstance);
             return newInstance;
         }
@@ -57,11 +57,6 @@ namespace ReflectSettings.EditableConfigs
             {
                 SubEditables.Add(editableConfig);
             }
-        }
-
-        private TCollection InstantiateObject()
-        {
-            return Activator.CreateInstance<TCollection>();
         }
 
         private ICollection<TItem> AsCollection => Value as ICollection<TItem> ?? new List<TItem>();
@@ -108,7 +103,7 @@ namespace ReflectSettings.EditableConfigs
 
         private IEditableConfig EditableConfigFor(TItem item)
         {
-            var config = Factory.Produce(item, true).First();
+            var config = Factory.Reflect(item, true).First();
             config.ChangeTrackingManager = ChangeTrackingManager;
             return config;
         }

@@ -7,7 +7,7 @@ namespace ReflectSettings.EditableConfigs
 {
     internal class EditableEnum<T> : EditableConfigBase<T>, IEditableEnum where T : struct
     {
-        public EditableEnum(object forInstance, PropertyInfo propertyInfo, EditableConfigFactory factory) : base(forInstance, propertyInfo, factory)
+        public EditableEnum(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
         {
             // parse the existing value on the instance
             Value = Value;
