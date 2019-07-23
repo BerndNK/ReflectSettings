@@ -125,6 +125,12 @@ namespace ReflectSettings.EditableConfigs
         {
             var targetType = typeof(TObject);
             var typeToInstantiate = targetType;
+            
+            if (targetType == typeof(string) && "" is TObject stringAsTObject)
+                return stringAsTObject;
+
+            if(targetType.IsPrimitive)
+                return default;
 
             if (targetType.IsInterface)
                 typeToInstantiate = PossibleTypesFor(targetType).First();
