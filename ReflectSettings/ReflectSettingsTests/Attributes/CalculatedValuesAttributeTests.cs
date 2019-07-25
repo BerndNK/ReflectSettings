@@ -119,6 +119,24 @@ namespace ReflectSettingsTests.Attributes
             public IList<string> SelectedStrings { get; set; }
         }
 
+        [UsedImplicitly]
+        private class ClassWhichProvidesValuesForListOfSubClassWithinASecondSubclass
+        {
+            public IEnumerable<string> AllowedStringsForRestrictedList() => ValueProvidingSubClasses.Select(x => x.Name);
+
+            [TypesForInstantiation(typeof(List<ClassWithName>))]
+            public IList<ClassWithName> ValueProvidingSubClasses { get; set; }
+
+            [TypesForInstantiation(typeof(List<RestrictedStringList>))]
+            [CalculatedValues(nameof(AllowedStringsForRestrictedList), nameof(AllowedStringsForRestrictedList))]
+            public IList<RestrictedStringList> SubInstancesWithRestrictedList { get; set; }
+        }
+
+        private class ClassWithName
+        {
+            public string Name { get; set; }
+        }
+
         [Test]
         public void IntPropertyWithCalculatedValuesDoesAllowCalculatedValue()
         {
@@ -324,6 +342,38 @@ namespace ReflectSettingsTests.Attributes
             collectionEditableOfSubClass.AddNewItemCommand.Execute(null);
 
             Assert.That(instance.SubInstancesWithRestrictedList.First().SelectedStrings.First(), Is.EqualTo(ClassWhichProvidesValuesForListOfSubClass.AllowedSubClassValue2));
+        }
+
+        [Test]
+        public void SubClassChangeShouldTriggerCalculatedValuesOfAnotherSubClass()
+        {
+            var result = Produce<ClassWhichProvidesValuesForListOfSubClassWithinASecondSubclass>(out var instance).ToList();
+            var nameProviderCollection = (IEditableCollection) result.First(x =>
+                x.PropertyInfo.Name == nameof(ClassWhichProvidesValuesForListOfSubClassWithinASecondSubclass
+                    .ValueProvidingSubClasses));
+            nameProviderCollection.AddNewItemCommand.Execute(null);
+
+            var nameProvidingEditable = nameProviderCollection.SubEditables.OfType<IEditableComplex>().First().SubEditables.OfType<EditableString>().First();
+
+            const string initialValue = nameof(initialValue);
+            nameProvidingEditable.Value = initialValue;
+
+
+            var subClassCollection = (IEditableCollection) result.First(x =>
+                x.PropertyInfo.Name == nameof(ClassWhichProvidesValuesForListOfSubClassWithinASecondSubclass
+                    .SubInstancesWithRestrictedList));
+            subClassCollection.AddNewItemCommand.Execute(null);
+
+
+            var stringListEditable = subClassCollection.SubEditables.OfType<IEditableComplex>().First().SubEditables.OfType<IEditableCollection>().First();
+            stringListEditable.AddNewItemCommand.Execute(null);
+
+            var restrictedStringEditable = stringListEditable.SubEditables.OfType<EditableString>().First();
+            Assert.That(restrictedStringEditable.Value, Is.EqualTo(initialValue));
+
+            nameProvidingEditable.Value = "somethingElse";
+
+            Assert.That(restrictedStringEditable.Value, Is.Not.EqualTo(initialValue));
         }
     }
 }

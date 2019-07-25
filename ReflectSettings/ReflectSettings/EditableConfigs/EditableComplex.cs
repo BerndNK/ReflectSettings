@@ -75,5 +75,14 @@ namespace ReflectSettings.EditableConfigs
                 editable.UpdateCalculatedValues();
             }
         }
+
+        protected override void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
+        {
+            base.SetChangeTrackingManagerForChildren(value);
+            foreach (var editable in SubEditables)
+            {
+                editable.ChangeTrackingManager = value;
+            }
+        }
     }
 }

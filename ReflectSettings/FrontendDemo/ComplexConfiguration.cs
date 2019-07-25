@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using JetBrains.Annotations;
 using ReflectSettings.Attributes;
 
@@ -38,10 +39,10 @@ namespace FrontendDemo
 
         public CultureInfo CultureInfo { get; set; }*/
 
-        [TypesForInstantiation(typeof(List<string>))]
-        public IList<string> AllowedStringsForSubInstances { get; set; }
+        [TypesForInstantiation(typeof(List<Curreny>))]
+        public IList<Curreny> AllowedStringsForSubInstances { get; set; }
 
-        public IEnumerable<string> AllowedStringsForRestrictedList() => AllowedStringsForSubInstances;
+        public IEnumerable<string> AllowedStringsForRestrictedList() => AllowedStringsForSubInstances.Select(x => x.DisplayName);
 
         [TypesForInstantiation(typeof(List<RestrictedStringList>))]
         [CalculatedValues(nameof(AllowedStringsForRestrictedList), nameof(AllowedStringsForRestrictedList))]

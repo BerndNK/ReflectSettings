@@ -78,7 +78,14 @@ namespace ReflectSettings.EditableConfigs
                 _changeTrackingManager = value;
 
                 _changeTrackingManager?.Add(this);
+
+                SetChangeTrackingManagerForChildren(value);
             }
+        }
+
+        protected virtual void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
+        {
+
         }
 
         public virtual void UpdateCalculatedValues()

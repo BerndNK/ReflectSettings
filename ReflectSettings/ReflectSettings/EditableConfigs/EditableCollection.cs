@@ -179,5 +179,18 @@ namespace ReflectSettings.EditableConfigs
             ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
             ItemToAddEditable.UpdateCalculatedValues();
         }
+
+        protected override void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
+        {
+            base.SetChangeTrackingManagerForChildren(value);
+            foreach (var editable in SubEditables)
+            {
+                editable.ChangeTrackingManager = value;
+            }
+            if (ItemToAddEditable==null)
+                return;
+
+            ItemToAddEditable.ChangeTrackingManager = value;
+        }
     }
 }
