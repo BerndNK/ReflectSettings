@@ -44,9 +44,9 @@ namespace ReflectSettings.EditableConfigs
                 var subEditables = Factory.Reflect(fromInstance).ToList();
                 foreach (var item in subEditables)
                 {
-                    item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttribute);
+                    item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
                     item.ChangeTrackingManager = ChangeTrackingManager;
-                    item.Value = item.Value;
+                    item.UpdateCalculatedValues();
                     SubEditables.Add(item);
                 }
             }
@@ -63,6 +63,17 @@ namespace ReflectSettings.EditableConfigs
 
             // parse the existing value on the instance
             Value = Value;
+        }
+
+        
+        public override void UpdateCalculatedValues()
+        {
+            base.UpdateCalculatedValues();
+            foreach (var editable in SubEditables)
+            {
+                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.UpdateCalculatedValues();
+            }
         }
     }
 }

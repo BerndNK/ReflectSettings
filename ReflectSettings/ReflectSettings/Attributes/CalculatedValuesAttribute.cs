@@ -9,6 +9,7 @@ namespace ReflectSettings.Attributes
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public class CalculatedValuesAttribute : Attribute
     {
+        public bool ForCollectionEntries { get; }
         public string Key { get; }
         private readonly string _memberMethodName;
 
@@ -16,8 +17,10 @@ namespace ReflectSettings.Attributes
         /// Values for the property of this attribute are calculated by the current instance of the parent object.
         /// </summary>
         /// <param name="memberMethodName">Expects a member method name with an empty argument list. Gets as input parameter the current instance, which contains the property this Attribute is attached to.</param>
-        public CalculatedValuesAttribute(string memberMethodName)
+        /// <param name="forCollectionEntries">Whether this attributes counts for the property itself or for its child values in case of a collection</param>
+        public CalculatedValuesAttribute(string memberMethodName, bool forCollectionEntries = false)
         {
+            ForCollectionEntries = forCollectionEntries;
             _memberMethodName = memberMethodName;
         }
 

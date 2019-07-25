@@ -135,9 +135,25 @@ namespace ReflectSettings.EditableConfigs
         {
             var config = Factory.Reflect(item, true).First();
             config.ChangeTrackingManager = ChangeTrackingManager;
-            config.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttribute);
-            config.Value = config.Value;
+            config.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
+            config.UpdateCalculatedValues();
             return config;
+        }
+
+        public override void UpdateCalculatedValues()
+        {
+            base.UpdateCalculatedValues();
+            foreach (var editable in SubEditables)
+            {
+                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.UpdateCalculatedValues();
+            }
+
+            if (ItemToAddEditable == null)
+                return;
+
+            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
+            ItemToAddEditable.UpdateCalculatedValues();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace ReflectSettings.EditableConfigs
 
             // if current value is also null, try to use the first PredefinedValue 
             var allowedValues = GetPredefinedValues().ToList();
-            return currentValue ?? allowedValues.FirstOrDefault();
+            return IsValueAllowed(currentValue) ? currentValue : allowedValues.FirstOrDefault();
         }
 
         public EditableString(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)

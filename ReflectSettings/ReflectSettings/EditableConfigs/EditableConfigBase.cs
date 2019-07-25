@@ -63,7 +63,7 @@ namespace ReflectSettings.EditableConfigs
         public ObservableCollection<object> PredefinedValues { get; } = new ObservableCollection<object>();
 
         public bool HasPredefinedValues => _attributes.OfType<PredefinedValuesAttribute>().Any() ||
-                                           _attributes.OfType<CalculatedValuesAttribute>().Any(x => x.Key == null) ||
+                                           AllCalculatedValuesAttribute.Any(x => x.Key == null) ||
                                            PropertyInfo.PropertyType.IsEnum;
 
         public ChangeTrackingManager ChangeTrackingManager
@@ -79,7 +79,7 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
-        public void UpdateCalculatedValues()
+        public virtual void UpdateCalculatedValues()
         {
             if (!HasPredefinedValues)
                 return;
@@ -119,11 +119,13 @@ namespace ReflectSettings.EditableConfigs
 
         protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttribute => InheritedCalculatedValuesAttribute.Concat(Attributes<CalculatedValuesAttribute>());
 
+        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttributeForChildren => AllCalculatedValuesAttribute.Where(x => x.Key != null || x.ForCollectionEntries);
+
         protected IEnumerable<T> GetPredefinedValues()
         {
             var staticValues = Attribute<PredefinedValuesAttribute>();
             // methods with a key are only used when the specific key is used as the resolution name of the attribute
-            var calculatedValuesAttributes = Attributes<CalculatedValuesAttribute>().Where(x => x.Key == null);
+            var calculatedValuesAttributes = AllCalculatedValuesAttribute.Where(x => x.Key == null);
 
             var calculatedValues = calculatedValuesAttributes.SelectMany(x => x.CallMethod(InheritedCalculatedValuesAttribute));
 

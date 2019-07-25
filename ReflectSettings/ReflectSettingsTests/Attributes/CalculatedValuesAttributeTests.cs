@@ -71,7 +71,7 @@ namespace ReflectSettingsTests.Attributes
             [CalculatedValues(nameof(PossibleValuesForSubType), SubClassValueCalculatorKey)]
             public SubClassThatTakesValuesFromParent SubClass { get; set; }
         }
-
+        
         [UsedImplicitly]
         private class SubClassThatTakesValuesFromParent
         {
@@ -92,6 +92,31 @@ namespace ReflectSettingsTests.Attributes
 
             [UsedImplicitly]
             public IEnumerable<string> SelectedValueValues() => DefinedValues;
+        }
+
+        [UsedImplicitly]
+        private class ClassWhichProvidesValuesForListOfSubClass
+        {
+            public const string AllowedSubClassValue1 = nameof(AllowedSubClassValue1);
+            public const string AllowedSubClassValue2 = nameof(AllowedSubClassValue2);
+
+            public IEnumerable<string> AllowedStringsForRestrictedList()
+            {
+                yield return AllowedSubClassValue1;
+                yield return AllowedSubClassValue2;
+            }
+
+            [TypesForInstantiation(typeof(List<RestrictedStringList>))]
+            [CalculatedValues(nameof(AllowedStringsForRestrictedList), nameof(AllowedStringsForRestrictedList))]
+            public IList<RestrictedStringList> SubInstancesWithRestrictedList { get; set; }
+        }
+
+        [UsedImplicitly]
+        private class RestrictedStringList
+        {
+            [TypesForInstantiation(typeof(List<string>))]
+            [CalculatedValues(nameof(ClassWhichProvidesValuesForListOfSubClass.AllowedStringsForRestrictedList), true)]
+            public IList<string> SelectedStrings { get; set; }
         }
 
         [Test]
@@ -250,6 +275,55 @@ namespace ReflectSettingsTests.Attributes
             editableString.Value = ClassWithSubClassThatIsConfigurable.SomeOtherPredefinedValue;
 
             Assert.That(instance.SubClass?.StringWithParentValues, Is.EqualTo(ClassWithSubClassThatIsConfigurable.SomeOtherPredefinedValue));
+        }
+
+        [Test]
+        public void CalculatedAttributeForListResultsInListForbiddingValuesOtherThanCalculatedValues()
+        {
+            var result = Produce<ClassWhichProvidesValuesForListOfSubClass>(out var instance);
+
+            var collectionEditable = result.OfType<IEditableCollection>().First();
+            collectionEditable.AddNewItemCommand.Execute(null);
+
+            var collectionEditableOfSubClass = collectionEditable.SubEditables.OfType<IEditableComplex>().First().SubEditables.OfType<IEditableCollection>().First();
+            var restrictedEditable = (EditableString) collectionEditableOfSubClass.ItemToAddEditable;
+
+            const string anyValue = nameof(anyValue);
+            restrictedEditable.Value = anyValue;
+            collectionEditableOfSubClass.AddNewItemCommand.Execute(null);
+
+            Assert.That(instance.SubInstancesWithRestrictedList.First().SelectedStrings.First(), Is.Not.EqualTo(anyValue));
+        }
+
+        [Test]
+        public void CalculatedAttributeForListResultsInListAddingCalculatedValues()
+        {
+            var result = Produce<ClassWhichProvidesValuesForListOfSubClass>(out var instance);
+
+            var collectionEditable = result.OfType<IEditableCollection>().First();
+            collectionEditable.AddNewItemCommand.Execute(null);
+
+            var collectionEditableOfSubClass = collectionEditable.SubEditables.OfType<IEditableComplex>().First().SubEditables.OfType<IEditableCollection>().First();
+            collectionEditableOfSubClass.AddNewItemCommand.Execute(null);
+
+            Assert.That(instance.SubInstancesWithRestrictedList.First().SelectedStrings.First(), Is.EqualTo(ClassWhichProvidesValuesForListOfSubClass.AllowedSubClassValue1));
+        }
+
+        [Test]
+        public void CalculatedAttributeForListResultsInListOnlyAllowingCalculatedValues()
+        {
+            var result = Produce<ClassWhichProvidesValuesForListOfSubClass>(out var instance);
+
+            var collectionEditable = result.OfType<IEditableCollection>().First();
+            collectionEditable.AddNewItemCommand.Execute(null);
+
+            var collectionEditableOfSubClass = collectionEditable.SubEditables.OfType<IEditableComplex>().First().SubEditables.OfType<IEditableCollection>().First();
+            var restrictedEditable = (EditableString) collectionEditableOfSubClass.ItemToAddEditable;
+
+            restrictedEditable.Value = ClassWhichProvidesValuesForListOfSubClass.AllowedSubClassValue2;
+            collectionEditableOfSubClass.AddNewItemCommand.Execute(null);
+
+            Assert.That(instance.SubInstancesWithRestrictedList.First().SelectedStrings.First(), Is.EqualTo(ClassWhichProvidesValuesForListOfSubClass.AllowedSubClassValue2));
         }
     }
 }
