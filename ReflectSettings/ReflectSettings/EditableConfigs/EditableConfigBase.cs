@@ -30,7 +30,9 @@ namespace ReflectSettings.EditableConfigs
                 var newValue = ParseValue(value);
                 if (Equals(newValue, Value))
                     return;
+                var oldValue = Value;
                 SetValue(newValue);
+                ValueChanged?.Invoke(this, new EditableConfigValueChangedEventArgs(oldValue, Value));
                 OnPropertyChanged();
             }
         }
@@ -96,15 +98,23 @@ namespace ReflectSettings.EditableConfigs
                 PredefinedValues.Add(value);
                 somethingChanged = true;
             }
+            
+            if (somethingChanged)
+            {
+                Value = Value;
+                somethingChanged = false;
+            }
 
             foreach (var value in toRemove)
             {
                 PredefinedValues.Remove(value);
                 somethingChanged = true;
             }
-
+            
             if (somethingChanged)
+            {
                 Value = Value;
+            }
         }
 
         private void InitCalculatedAttributes()
@@ -235,6 +245,7 @@ namespace ReflectSettings.EditableConfigs
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

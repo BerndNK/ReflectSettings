@@ -23,6 +23,12 @@ namespace ReflectSettingsTests.EditableConfigs
             [UsedImplicitly]
             public ObservableCollection<string> StringList { get; set; }
         }
+        
+        [UsedImplicitly]
+        private class ClassWithDictionary
+        {
+            public Dictionary<string, string> Dictionary { get; set; }
+        }
 
         [Test]
         public void ListPropertyResultsInCollectionEditable()
@@ -64,6 +70,35 @@ namespace ReflectSettingsTests.EditableConfigs
             var result = Produce<ClassWithListProperty>(out var instance);
             
             Assert.That(instance.StringList, Is.Not.Null);
+        }
+
+        [Test]
+        public void ChangingStringThroughEditableIsPossible()
+        {
+            var result = Produce<ClassWithListProperty>(out var instance);
+            var editableCollection = result.OfType<IEditableCollection>().First();
+            editableCollection.AddNewItemCommand.Execute(null);
+
+            var stringEditable = editableCollection.SubEditables.OfType<EditableString>().First();
+            const string someValue = nameof(someValue);
+            stringEditable.Value = someValue;
+
+            Assert.That(instance.StringList.First(), Is.EqualTo(someValue));
+        }
+
+        [Test]
+        public void ChangingKeyThroughEditableUpdatesDictionary()
+        {
+            var result = Produce<ClassWithDictionary>(out var instance);
+            var editableCollection = result.OfType<IEditableCollection>().First();
+            editableCollection.ItemToAddEditable.Value = new KeyValuePair<string, string>("Key", "Value");
+            editableCollection.AddNewItemCommand.Execute(null);
+
+            var keyValuePair = editableCollection.SubEditables.OfType<IEditableKeyValuePair>().First();
+            const string newKey = nameof(newKey);
+            keyValuePair.Key = newKey;
+
+            Assert.That(instance.Dictionary.First().Key, Is.EqualTo(newKey));
         }
     }
 }

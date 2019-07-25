@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
@@ -21,5 +22,6 @@ namespace ReflectSettings.EditableConfigs
         List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; }
 
         void UpdateCalculatedValues();
+        event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
     }
 }

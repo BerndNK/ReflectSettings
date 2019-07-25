@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
@@ -97,8 +98,31 @@ namespace ReflectSettings.EditableConfigs
                 return;
             }
 
-            SubEditables.Add(EditableConfigFor(item));
+            var editable = EditableConfigFor(item);
+            if (typeof(TItem).IsPrimitive || typeof(TItem) == typeof(string) || editable is IEditableKeyValuePair)
+                editable.ValueChanged += OnPrimitiveChildValueChanged;
+
+            SubEditables.Add(editable);
             OnPropertyChanged(nameof(SubEditables));
+        }
+
+        private void OnPrimitiveChildValueChanged(object sender, EditableConfigValueChangedEventArgs e)
+        {
+            var oldValue = (TItem) e.OldValue;
+            var newValue = (TItem) e.NewValue;
+
+            var changedChild = (IEditableConfig) sender;
+            var indexOfEditable = SubEditables.IndexOf(changedChild);
+            if (Value is IList<TItem> asList)
+                asList[indexOfEditable] = newValue;
+            else
+            {
+                if(AsCollection.Contains(oldValue))
+                {
+                    AsCollection.Remove(oldValue);
+                    AsCollection.Add(newValue);
+                }
+            }
         }
 
         public void Clear()
