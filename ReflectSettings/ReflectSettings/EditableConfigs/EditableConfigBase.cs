@@ -135,8 +135,13 @@ namespace ReflectSettings.EditableConfigs
             if (targetType.IsInterface)
                 typeToInstantiate = PossibleTypesFor(targetType).First();
 
+            if (!HasConstructorWithNoParameter(typeToInstantiate))
+                return default;
+
             return (TObject) Activator.CreateInstance(typeToInstantiate);
         }
+
+        private bool HasConstructorWithNoParameter(Type type) => type.GetConstructor(Type.EmptyTypes) != null;
 
         protected IEnumerable<Type> PossibleTypesFor(Type interfaceType)
         {

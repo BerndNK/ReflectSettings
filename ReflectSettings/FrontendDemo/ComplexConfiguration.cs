@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using JetBrains.Annotations;
 using ReflectSettings.Attributes;
 
@@ -34,5 +35,7 @@ namespace FrontendDemo
         public IReadOnlyDictionary<string, string> SomeDictionary { get; set; }
 
         public Curreny SomeCurrencyThatJustIsHereForDemonstrationPurposes { get; set; }
+
+        public CultureInfo CultureInfo { get; set; }
     }
 }

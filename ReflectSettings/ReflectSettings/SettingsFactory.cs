@@ -153,7 +153,12 @@ namespace ReflectSettings
         {
             var allProperties = ofType.GetProperties();
 
-            return allProperties.Where(HasGetterAndSetter).Where(IsNotIgnored);
+            return allProperties.Where(HasGetterAndSetter).Where(IsNotIgnored).Where(IsNotStatic);
+        }
+
+        private bool IsNotStatic(PropertyInfo arg)
+        {
+            return !arg.GetAccessors(false).Any(x => x.IsStatic);
         }
 
         private bool HasGetterAndSetter(PropertyInfo arg)
