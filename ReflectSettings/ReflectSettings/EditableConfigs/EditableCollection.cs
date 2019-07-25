@@ -135,6 +135,8 @@ namespace ReflectSettings.EditableConfigs
         {
             var config = Factory.Reflect(item, true).First();
             config.ChangeTrackingManager = ChangeTrackingManager;
+            config.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttribute);
+            config.Value = config.Value;
             return config;
         }
     }

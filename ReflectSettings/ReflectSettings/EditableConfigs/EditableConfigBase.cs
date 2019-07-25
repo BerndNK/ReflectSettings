@@ -48,18 +48,22 @@ namespace ReflectSettings.EditableConfigs
             Factory = factory;
 
             _attributes = propertyInfo.GetCustomAttributes(true).OfType<Attribute>().ToList();
+            InitCalculatedAttributes();
             UpdateCalculatedValues();
         }
 
         private TAttribute Attribute<TAttribute>() where TAttribute : Attribute =>
             _attributes.OfType<TAttribute>().FirstOrDefault() ?? Activator.CreateInstance<TAttribute>();
 
+        private IEnumerable<TAttribute> Attributes<TAttribute>() where TAttribute : Attribute =>
+            _attributes.OfType<TAttribute>();
+
         protected MinMaxAttribute MinMax() => Attribute<MinMaxAttribute>();
 
         public ObservableCollection<object> PredefinedValues { get; } = new ObservableCollection<object>();
 
-        public bool HasPredefinedValues => _attributes.OfType<PredefinedValuesAttribute>().FirstOrDefault() != null ||
-                                           _attributes.OfType<CalculatedValuesAttribute>().FirstOrDefault() != null ||
+        public bool HasPredefinedValues => _attributes.OfType<PredefinedValuesAttribute>().Any() ||
+                                           _attributes.OfType<CalculatedValuesAttribute>().Any(x => x.Key == null) ||
                                            PropertyInfo.PropertyType.IsEnum;
 
         public ChangeTrackingManager ChangeTrackingManager
@@ -103,12 +107,25 @@ namespace ReflectSettings.EditableConfigs
                 Value = Value;
         }
 
+        private void InitCalculatedAttributes()
+        {
+            foreach (var attribute in Attributes<CalculatedValuesAttribute>())
+            {
+                attribute.AttachedToInstance = ForInstance;
+            }
+        }
+
+        public List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; } = new List<CalculatedValuesAttribute>();
+
+        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttribute => InheritedCalculatedValuesAttribute.Concat(Attributes<CalculatedValuesAttribute>());
+
         protected IEnumerable<T> GetPredefinedValues()
         {
             var staticValues = Attribute<PredefinedValuesAttribute>();
-            var calculatedValuesAttribute = Attribute<CalculatedValuesAttribute>();
+            // methods with a key are only used when the specific key is used as the resolution name of the attribute
+            var calculatedValuesAttributes = Attributes<CalculatedValuesAttribute>().Where(x => x.Key == null);
 
-            var calculatedValues = calculatedValuesAttribute.CallMethod(ForInstance);
+            var calculatedValues = calculatedValuesAttributes.SelectMany(x => x.CallMethod(InheritedCalculatedValuesAttribute));
 
             var concat = staticValues.Values.Concat(calculatedValues).ToList();
             var toReturn = concat.OfType<T>().Except(ForbiddenValues()).ToList();
@@ -125,11 +142,11 @@ namespace ReflectSettings.EditableConfigs
         {
             var targetType = typeof(TObject);
             var typeToInstantiate = targetType;
-            
+
             if (targetType == typeof(string) && "" is TObject stringAsTObject)
                 return stringAsTObject;
 
-            if(targetType.IsPrimitive)
+            if (targetType.IsPrimitive)
                 return default;
 
             if (targetType.IsInterface)
@@ -187,7 +204,7 @@ namespace ReflectSettings.EditableConfigs
             {
                 var castMethod = CastMethod<TNumeric>();
                 if (castMethod != null)
-                    result = (TNumeric) castMethod(value is string asString ? asString.Replace(',','.') : value);
+                    result = (TNumeric) castMethod(value is string asString ? asString.Replace(',', '.') : value);
                 else
                     result = (TNumeric) value;
                 return true;

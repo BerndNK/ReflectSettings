@@ -1,6 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
+using ReflectSettings.Attributes;
 
 namespace ReflectSettings.EditableConfigs
 {
@@ -15,6 +17,8 @@ namespace ReflectSettings.EditableConfigs
         bool HasPredefinedValues { get; }
 
         ChangeTrackingManager ChangeTrackingManager { get; set; }
+
+        List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; }
 
         void UpdateCalculatedValues();
     }

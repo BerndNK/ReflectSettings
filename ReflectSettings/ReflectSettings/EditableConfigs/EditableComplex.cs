@@ -44,7 +44,9 @@ namespace ReflectSettings.EditableConfigs
                 var subEditables = Factory.Reflect(fromInstance).ToList();
                 foreach (var item in subEditables)
                 {
+                    item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttribute);
                     item.ChangeTrackingManager = ChangeTrackingManager;
+                    item.Value = item.Value;
                     SubEditables.Add(item);
                 }
             }

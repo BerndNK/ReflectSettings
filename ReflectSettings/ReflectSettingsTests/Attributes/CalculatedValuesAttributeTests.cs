@@ -3,6 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Attributes;
+using ReflectSettings.EditableConfigs;
 
 namespace ReflectSettingsTests.Attributes
 {
@@ -51,6 +52,31 @@ namespace ReflectSettingsTests.Attributes
                 B,
                 C
             }
+        }
+
+        [UsedImplicitly]
+        private class ClassWithSubClassThatIsConfigurable
+        {
+            public const string SomePredefinedValue = nameof(SomePredefinedValue);
+            public const string SomeOtherPredefinedValue = nameof(SomeOtherPredefinedValue);
+            public const string SubClassValueCalculatorKey = nameof(SubClassValueCalculatorKey);
+
+            [UsedImplicitly]
+            public IEnumerable<string> PossibleValuesForSubType()
+            {
+                yield return SomePredefinedValue;
+                yield return SomeOtherPredefinedValue;
+            }
+
+            [CalculatedValues(nameof(PossibleValuesForSubType), SubClassValueCalculatorKey)]
+            public SubClassThatTakesValuesFromParent SubClass { get; set; }
+        }
+
+        [UsedImplicitly]
+        private class SubClassThatTakesValuesFromParent
+        {
+            [CalculatedValues(ClassWithSubClassThatIsConfigurable.SubClassValueCalculatorKey)]
+            public string StringWithParentValues { get; set; }
         }
 
         private class ClassWithConfigurableValues
@@ -192,6 +218,38 @@ namespace ReflectSettingsTests.Attributes
             result.First(x => x.PropertyInfo.Name == nameof(ClassWithConfigurableValues.SomeInt)).Value = 5;
 
             Assert.That(instance.SelectedValue, Is.EqualTo(someString));
+        }
+        
+        [Test]
+        public void ValueCalculatorOnParentClassGetsUsedOnSubClassForDefaultValue()
+        {
+            Produce<ClassWithSubClassThatIsConfigurable>(out var instance);
+
+            Assert.That(instance.SubClass?.StringWithParentValues, Is.EqualTo(ClassWithSubClassThatIsConfigurable.SomePredefinedValue));
+        }
+        
+        [Test]
+        public void ValueCalculatorOnParentClassGetsUsedOnSubClassForForbiddingValue()
+        {
+            var result = Produce<ClassWithSubClassThatIsConfigurable>(out var instance);
+
+            var editableString = result.OfType<IEditableComplex>().First().SubEditables.OfType<EditableString>().First();
+
+            editableString.Value = "anything";
+
+            Assert.That(instance.SubClass?.StringWithParentValues, Is.EqualTo(ClassWithSubClassThatIsConfigurable.SomePredefinedValue));
+        }
+        
+        [Test]
+        public void ValueCalculatorOnParentClassGetsUsedOnSubClassForChangingValue()
+        {
+            var result = Produce<ClassWithSubClassThatIsConfigurable>(out var instance);
+            
+            var editableString = result.OfType<IEditableComplex>().First().SubEditables.OfType<EditableString>().First();
+
+            editableString.Value = ClassWithSubClassThatIsConfigurable.SomeOtherPredefinedValue;
+
+            Assert.That(instance.SubClass?.StringWithParentValues, Is.EqualTo(ClassWithSubClassThatIsConfigurable.SomeOtherPredefinedValue));
         }
     }
 }
