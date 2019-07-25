@@ -34,7 +34,7 @@ namespace ReflectSettingsTests.EditableConfigs
 
 
         [Test]
-        public void ListEdtiableCanAddItems()
+        public void ListEditableCanAddItems()
         {
             var result = Produce<ClassWithListProperty>(out var instance);
             var collectionProperty = (ICollection<string>) result.First(c => c.PropertyInfo.Name == nameof(ClassWithListProperty.StringList));
@@ -42,6 +42,20 @@ namespace ReflectSettingsTests.EditableConfigs
             collectionProperty.Add("");
 
             Assert.That(instance.StringList.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ListEditableCanModifyInstanceBeforeAddingIt()
+        {
+            var result = Produce<ClassWithListProperty>(out var instance);
+            var editableCollection = result.OfType<IEditableCollection>().First();
+
+            var subEditable = editableCollection.ItemToAddEditable as EditableString;
+            const string valueThatGotAdded = nameof(valueThatGotAdded);
+            subEditable.Value = valueThatGotAdded;
+            editableCollection.AddNewItemCommand.Execute(null);
+
+            Assert.That(instance.StringList.First(), Is.EqualTo(valueThatGotAdded));
         }
 
         [Test]

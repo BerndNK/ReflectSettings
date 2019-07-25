@@ -46,6 +46,20 @@ namespace ReflectSettingsTests.Attributes
             public ICollection<ISomeObject> SomeObjects { get; set; }
         }
 
+        [UsedImplicitly]
+        private class ClassWithReadOnlyListProperty
+        {
+            [TypesForInstantiation(typeof(List<string>))]
+            public IReadOnlyList<string> ReadOnlyList { get; set; }
+        }
+
+        [UsedImplicitly]
+        private class ClassWithReadOnlyDictionaryProperty
+        {
+            [TypesForInstantiation(typeof(Dictionary<string,string>))]
+            public IReadOnlyDictionary<string, string> ReadOnlyDictionary { get; set; }
+        }
+
         [Test]
         public void GivenCorrectTypesForInstantiationShouldResultInInstance()
         {
@@ -89,6 +103,22 @@ namespace ReflectSettingsTests.Attributes
             var result = Produce<ClassWithIListAndObservableCollection>(out var instance);
 
             Assert.That(instance.SomeObjects.GetType(), Is.EqualTo(typeof(ObservableCollection<ISomeObject>)));
+        }
+
+        [Test]
+        public void ReadOnlyListPropertyIsInitializedWithList()
+        {
+            Produce<ClassWithReadOnlyListProperty>(out var instance);
+
+            Assert.That(instance.ReadOnlyList, Is.Not.Null);
+        }
+
+        [Test]
+        public void ReadOnlyDictionaryPropertyIsInitializedWithDictionary()
+        {
+            Produce<ClassWithReadOnlyDictionaryProperty>(out var instance);
+
+            Assert.That(instance.ReadOnlyDictionary, Is.Not.Null);
         }
     }
 }

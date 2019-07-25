@@ -30,6 +30,9 @@ namespace FrontendDemo
         [UsedImplicitly]
         public bool UseLightTheme { get; set; }
 
+        [TypesForInstantiation(typeof(Dictionary<string,string>))]
+        public IReadOnlyDictionary<string, string> SomeDictionary { get; set; }
+
         public Curreny SomeCurrencyThatJustIsHereForDemonstrationPurposes { get; set; }
     }
 }

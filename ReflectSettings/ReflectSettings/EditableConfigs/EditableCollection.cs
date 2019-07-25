@@ -11,18 +11,38 @@ namespace ReflectSettings.EditableConfigs
     public class EditableCollection<TItem, TCollection> : EditableConfigBase<TCollection>, IEditableCollection,
         ICollection<TItem> where TCollection : class, ICollection<TItem>
     {
+        private IEditableConfig _itemToAddEditable;
+
         public EditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
             forInstance, propertyInfo, factory)
         {
             Value = Value;
             AddNewItemCommand = new DelegateCommand(AddNewItem);
+            PrepareItemToAdd();
         }
 
-        public ICommand AddNewItemCommand { get; set; }
+        public ICommand AddNewItemCommand { get; }
+
+        public IEditableConfig ItemToAddEditable
+        {
+            get => _itemToAddEditable;
+            private set
+            {
+                _itemToAddEditable = value; 
+                OnPropertyChanged();
+            }
+        }
 
         private void AddNewItem()
         {
-            Add(InstantiateObject<TItem>());
+            Add((TItem) ItemToAddEditable.Value);
+            PrepareItemToAdd();
+        }
+
+        private void PrepareItemToAdd()
+        {
+            var instanceToAdd = InstantiateObject<TItem>();
+            ItemToAddEditable = EditableConfigFor(instanceToAdd);
         }
 
         protected override TCollection ParseValue(object value)
@@ -67,7 +87,16 @@ namespace ReflectSettings.EditableConfigs
 
         public void Add(TItem item)
         {
-            AsCollection.Add(item);
+            try
+            {
+                AsCollection.Add(item);
+            }
+            catch (Exception)
+            {
+                // ignored. Exception may occur for example, when an item with duplicate key gets added to a dictionary.
+                return;
+            }
+
             SubEditables.Add(EditableConfigFor(item));
             OnPropertyChanged(nameof(SubEditables));
         }
@@ -99,7 +128,8 @@ namespace ReflectSettings.EditableConfigs
 
         public bool IsReadOnly => AsCollection.IsReadOnly;
 
-        public ObservableCollection<IEditableConfig> SubEditables { get; private set; } = new ObservableCollection<IEditableConfig>();
+        public ObservableCollection<IEditableConfig> SubEditables { get; private set; } =
+            new ObservableCollection<IEditableConfig>();
 
         private IEditableConfig EditableConfigFor(TItem item)
         {

@@ -101,12 +101,23 @@ namespace ReflectSettings
             {
                 if (propertyInfo.PropertyType.IsEnum)
                     editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
-                else if (IsCollection(propertyInfo))
+                else if (ImplementsType(propertyInfo, typeof(KeyValuePair<,>),out var keyValuePairType))
                 {
-                    var subItemType = propertyInfo.PropertyType.GenericTypeArguments.First();
+                    var subItemTypes = keyValuePairType.GenericTypeArguments;
+                    
+                    editableType = typeof(EditableKeyValuePair<,>).MakeGenericType(subItemTypes);
+                }
+                else if (ImplementsType(propertyInfo, typeof(ICollection<>),out var iCollectionType))
+                {
+                    var subItemType = iCollectionType.GenericTypeArguments.First();
 
-                    editableType =
-                        typeof(EditableCollection<,>).MakeGenericType(subItemType, propertyInfo.PropertyType);
+                    editableType = typeof(EditableCollection<,>).MakeGenericType(subItemType, propertyInfo.PropertyType);
+                }
+                else if (ImplementsType(propertyInfo, typeof(IReadOnlyCollection<>),out var iReadOnlyCollectionType))
+                {
+                    var subItemType = iReadOnlyCollectionType.GenericTypeArguments.First();
+
+                    editableType = typeof(ReadonlyEditableCollection<,>).MakeGenericType(subItemType, propertyInfo.PropertyType);
                 }
                 else
                     editableType = typeof(EditableComplex<>).MakeGenericType(propertyInfo.PropertyType);
@@ -115,12 +126,27 @@ namespace ReflectSettings
             return editableType;
         }
 
-        private bool IsCollection(PropertyInfo propertyInfo)
+        private bool ImplementsType(PropertyInfo propertyInfo, Type genericTypeToCheck, out Type specificImplementationOfGeneric)
         {
-            var isICollectionItself = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>);
-            var inheritsICollection = propertyInfo.PropertyType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+            specificImplementationOfGeneric = null;
+            if (!genericTypeToCheck.IsGenericType)
+                return propertyInfo.PropertyType.IsAssignableFrom(genericTypeToCheck);
 
-            return isICollectionItself || inheritsICollection;
+            var isImplementationItself = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == genericTypeToCheck;
+            var inheritedInterfaceType = 
+                propertyInfo.PropertyType.GetInterfaces()
+                .FirstOrDefault(x =>
+                    x.IsGenericType &&
+                    x.GetGenericTypeDefinition() == genericTypeToCheck);
+
+            // the given interface may be an generic definition like ICollection<>.
+            // So in order to actually get the type of T (in ICollection<T>), the actual implemented type is provided as an out variable
+            specificImplementationOfGeneric = 
+                isImplementationItself
+                    ? propertyInfo.PropertyType
+                    : inheritedInterfaceType;
+
+            return isImplementationItself || inheritedInterfaceType != null;
         }
 
         private IEnumerable<PropertyInfo> EditableProperties(Type ofType)

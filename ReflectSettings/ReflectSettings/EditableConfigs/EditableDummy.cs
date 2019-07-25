@@ -7,7 +7,7 @@ namespace ReflectSettings.EditableConfigs
         public EditableDummy(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
         {
         }
-
+        
         protected override object ParseValue(object value) => value;
     }
 }

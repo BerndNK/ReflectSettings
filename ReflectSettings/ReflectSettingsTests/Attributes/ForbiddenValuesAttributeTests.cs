@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings.Attributes;
@@ -14,10 +15,9 @@ namespace ReflectSettingsTests.Attributes
         // ReSharper disable once ClassNeverInstantiated.Local
         private class ClassWithForbiddenValues
         {
-            [UsedImplicitly]
-            public string AnythingGoes { get; set; }
+            [UsedImplicitly] public string AnythingGoes { get; set; }
 
-            [ForbiddenValues(0,5,10)]
+            [ForbiddenValues(0, 5, 10)]
             [UsedImplicitly]
             public int IntRestrictions { get; set; }
 
@@ -29,21 +29,19 @@ namespace ReflectSettingsTests.Attributes
             [UsedImplicitly]
             public SomeEnum EnumRestrictions { get; set; }
 
-            
+
             [ForbiddenValues(null)]
             [PredefinedValues(SomeRestrictedStringValue)]
             [UsedImplicitly]
             public string NonNullString { get; set; }
 
-            [ForbiddenValues(false)]
-            public bool NotFalseBool { get; set; }
+            [ForbiddenValues(false)] public bool NotFalseBool { get; set; }
 
             internal enum SomeEnum
             {
                 A,
                 B,
-                [UsedImplicitly]
-                C
+                [UsedImplicitly] C
             }
         }
 
@@ -58,43 +56,46 @@ namespace ReflectSettingsTests.Attributes
 
             Assert.That(toTest.Value, Is.EqualTo(someValue));
         }
-        
+
         [Test]
         public void IntPropertyWithForbiddenValuesDoesNotAllowForbidden()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.IntRestrictions)));
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.IntRestrictions)));
             const int someValue = 0;
             toTest.Value = someValue;
 
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));
         }
-        
+
         [Test]
         public void StringPropertyWithForbiddenValuesDoesNotAllowForbidden()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.StringRestrictions)));
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.StringRestrictions)));
             const string someValue = SomeRestrictedStringValue;
             toTest.Value = someValue;
 
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));
         }
-        
+
         [Test]
         public void EnumPropertyWithForbiddenValuesDoesNotAllowForbidden()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.EnumRestrictions)));
+            var toTest =
+                result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.EnumRestrictions)));
             const ClassWithForbiddenValues.SomeEnum someValue = ClassWithForbiddenValues.SomeEnum.A;
             toTest.Value = someValue;
 
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));
         }
-        
+
         [Test]
         public void BoolPropertyWithForbiddenValuesDoesNotAllowForbidden()
         {
@@ -105,37 +106,40 @@ namespace ReflectSettingsTests.Attributes
 
             Assert.That(toTest.Value, Is.Not.EqualTo(false));
         }
-        
+
         [Test]
         public void IntPropertyWithForbiddenGetsInitializedWithANonForbiddenValue()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.IntRestrictions)));
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.IntRestrictions)));
 
             Assert.That(toTest.Value, Is.Not.EqualTo(0));
         }
-        
+
         [Test]
         public void StringPropertyWithForbiddenValuesGetsInitializedWithANonForbiddenValue()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.StringRestrictions)));
+            var toTest = result.First(x =>
+                x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.StringRestrictions)));
 
             Assert.That(toTest.Value, Is.Not.EqualTo(SomeRestrictedStringValue));
         }
-        
+
         [Test]
         public void EnumPropertyWithForbiddenValuesGetsInitializedWithANonForbiddenValue()
         {
             var result = Produce<ClassWithForbiddenValues>();
 
-            var toTest = result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.EnumRestrictions)));
+            var toTest =
+                result.First(x => x.PropertyInfo.Name.Equals(nameof(ClassWithForbiddenValues.EnumRestrictions)));
 
             Assert.That(toTest.Value, Is.Not.EqualTo(ClassWithForbiddenValues.SomeEnum.A));
         }
-        
+
         [Test]
         public void BoolPropertyWithForbiddenValuesGetsInitializedWithANonForbiddenValue()
         {
@@ -145,7 +149,7 @@ namespace ReflectSettingsTests.Attributes
 
             Assert.That(toTest.Value, Is.Not.EqualTo(false));
         }
-        
+
         [Test]
         public void StringWithForbiddenNullValueShouldResultInFirstPredefinedValue()
         {

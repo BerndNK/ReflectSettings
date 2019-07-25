@@ -20,6 +20,10 @@ namespace FrontendDemo
                         return element?.TryFindResource("EditableStringComboboxTemplate") as DataTemplate;
                     else
                         return DataTemplateByName(editableString, element);
+                case IEditableKeyValuePair _:
+                    return element?.TryFindResource("EditableKeyValuePairTemplate") as DataTemplate;
+                case IReadOnlyEditableCollection _:
+                    return element?.TryFindResource("ReadOnlyEditableCollectionTemplate") as DataTemplate;
                 case IEditableCollection _:
                     return element?.TryFindResource("EditableCollectionTemplate") as DataTemplate;
                 case IEditableComplex editableComplex:

@@ -29,6 +29,16 @@
             <CheckBox IsChecked="{Binding Value, Mode=TwoWay}"/>
         </DockPanel>
     </DataTemplate>
+
+    <DataTemplate x:Key="EditableKeyValuePairTemplate" DataType="{x:Type editableConfigs:IEditableKeyValuePair}">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="Key" Foreground="AliceBlue" />
+            <TextBox Text="{Binding Key, Mode=TwoWay}" MinWidth="50"/>
+            <TextBlock DockPanel.Dock="Left" Text="Value" Foreground="AliceBlue"/>
+            <TextBox Text="{Binding PairValue, Mode=TwoWay}" MinWidth="50"/>
+        </DockPanel>
+    </DataTemplate>
+
     <DataTemplate x:Key="EditableIntTemplate" DataType="{x:Type editableConfigs:EditableInt}">
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
@@ -93,9 +103,29 @@
                 <TextBlock Text="{Binding PropertyInfo.Name}" DockPanel.Dock="Left" FontSize="15"
                            Foreground="AliceBlue" Opacity="0.5" />
                 <Button Content="+" Background="Transparent" BorderBrush="Transparent" Command="{Binding AddNewItemCommand}" Foreground="White" DockPanel.Dock="Right"/>
+                <ContentPresenter Content="{Binding ItemToAddEditable}" ContentTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}" DockPanel.Dock="Right"/>
             </DockPanel>
             <GroupBox BorderBrush="#55FFFFFF" Margin="5" Padding="5" BorderThickness="0.1">
                 <ItemsControl ItemsSource="{Binding SubEditables}"
+                              ItemTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </GroupBox>
+        </DockPanel>
+
+    </DataTemplate>
+    <DataTemplate x:Key="ReadOnlyEditableCollectionTemplate" DataType="{x:Type editableConfigs:IEditableCollection}">
+        <DockPanel>
+            <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                <TextBlock Text="{Binding PropertyInfo.Name}" DockPanel.Dock="Left" FontSize="15"
+                           Foreground="AliceBlue" Opacity="0.5" />
+            </DockPanel>
+            <GroupBox BorderBrush="#55FFFFFF" Margin="5" Padding="5" BorderThickness="0.1">
+                <ItemsControl ItemsSource="{Binding SubEditables}" IsEnabled="False"
                               ItemTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

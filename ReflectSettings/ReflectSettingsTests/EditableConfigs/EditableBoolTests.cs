@@ -10,6 +10,7 @@ namespace ReflectSettingsTests.EditableConfigs
         [UsedImplicitly]
         private class ClassWithBoolProperties
         {
+            [UsedImplicitly]
             public bool AllowAnything { get; set; }
         }
 
