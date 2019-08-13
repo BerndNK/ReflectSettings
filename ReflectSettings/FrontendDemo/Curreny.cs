@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using ReflectSettings.Attributes;
@@ -26,6 +25,7 @@ namespace FrontendDemo
         public string DisplayName => $"{(string.IsNullOrWhiteSpace(Name) ? $"[{nameof(Curreny)}]" : Name)} 1$ = {DollarToCurrencyFactory}{Name}";
 
         [MinMax]
+        [Name("Dollar to currency factor")]
         public double DollarToCurrencyFactory
         {
             get => _dollarToCurrencyFactory;

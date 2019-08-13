@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -15,5 +16,7 @@ namespace ReflectSettings.EditableConfigs
         /// This is to edit the properties before actually adding the item to the collection.
         /// </summary>
         IEditableConfig ItemToAddEditable { get; }
+
+        Type SubItemType { get; }
     }
 }

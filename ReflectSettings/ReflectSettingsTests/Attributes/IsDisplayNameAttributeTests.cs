@@ -7,13 +7,13 @@ using ReflectSettings.EditableConfigs;
 
 namespace ReflectSettingsTests.Attributes
 {
-    class DisplayNameAttributeTests : EditableConfigFactoryTestBase
+    class IsDisplayNameAttributeTests : EditableConfigFactoryTestBase
     {
         private const string ShouldNotBeTheName = nameof(ShouldNotBeTheName);
         private const string ShouldBeTheName = nameof(ShouldBeTheName);
 
         [UsedImplicitly]
-        private class ClassWithDisplayNameProperty
+        private class ClassWithIsDisplayNameProperty
         {
             [IsDisplayName] 
             [UsedImplicitly]
@@ -23,37 +23,37 @@ namespace ReflectSettingsTests.Attributes
         }
         
         [UsedImplicitly]
-        private class ClassWithoutDisplayNameProperty
+        private class ClassWithoutIsDisplayNameProperty
         {
             public override string ToString() => ShouldBeTheName;
         }
 
         [UsedImplicitly]
-        private class ClassWithChildrenWithDisplayNameProperty
+        private class ClassWithChildrenWithIsDisplayNameProperty
         {
             [UsedImplicitly]
-            public List<ClassWithDisplayNameProperty> Children { get; set; }
+            public List<ClassWithIsDisplayNameProperty> Children { get; set; }
         }
 
         [UsedImplicitly]
-        private class ClassWithChildrenWithoutDisplayNameProperty
+        private class ClassWithChildrenWithoutIsDisplayNameProperty
         {
             [UsedImplicitly]
-            public List<ClassWithoutDisplayNameProperty> Children { get; set; }
+            public List<ClassWithoutIsDisplayNameProperty> Children { get; set; }
         }
         
         [Test]
-        public void ClassWithDisplayNamePropertyGivesCorrectDisplayName()
+        public void ClassWithIsDisplayNamePropertyGivesCorrectDisplayName()
         {
-            var editableComplex = Produce<ClassWithDisplayNameProperty>(true).OfType<IEditableComplex>().First();
+            var editableComplex = Produce<ClassWithIsDisplayNameProperty>(true).OfType<IEditableComplex>().First();
 
             Assert.That(editableComplex.DisplayName, Is.EqualTo(ShouldBeTheName));
         }
         
         [Test]
-        public void ClassWithDisplayNamePropertyShowsDisplayNameAfterChanging()
+        public void ClassWithIsDisplayNamePropertyShowsDisplayNameAfterChanging()
         {
-            var editableComplex = Produce<ClassWithDisplayNameProperty>(true).OfType<IEditableComplex>().First();
+            var editableComplex = Produce<ClassWithIsDisplayNameProperty>(true).OfType<IEditableComplex>().First();
             
 
             var namePropertyEditable = editableComplex.SubEditables.First();
@@ -64,9 +64,9 @@ namespace ReflectSettingsTests.Attributes
         }
         
         [Test]
-        public void ClassWithDisplayNamePropertyThrowsCorrectPropertyChangedAfterChanging()
+        public void ClassWithIsDisplayNamePropertyThrowsCorrectPropertyChangedAfterChanging()
         {
-            var editableComplex = Produce<ClassWithDisplayNameProperty>(true).OfType<IEditableComplex>().First();
+            var editableComplex = Produce<ClassWithIsDisplayNameProperty>(true).OfType<IEditableComplex>().First();
 
             var propertyChangedCalled = false;
             editableComplex.PropertyChanged += (sender, args) =>
@@ -82,17 +82,17 @@ namespace ReflectSettingsTests.Attributes
         }
 
         [Test]
-        public void ClassWithoutDisplayNamePropertyGivesToStringAsDisplayName()
+        public void ClassWithoutIsDisplayNamePropertyGivesToStringAsDisplayName()
         {
-            var editableComplex = Produce<ClassWithoutDisplayNameProperty>(true).OfType<IEditableComplex>().First();
+            var editableComplex = Produce<ClassWithoutIsDisplayNameProperty>(true).OfType<IEditableComplex>().First();
 
             Assert.That(editableComplex.DisplayName, Is.EqualTo(ShouldBeTheName));
         }
 
         [Test]
-        public void ChildrenOfClassWithChildrenWithDisplayNamePropertyShouldGivePropertyForDisplayName()
+        public void ChildrenOfClassWithChildrenWithIsDisplayNamePropertyShouldGivePropertyForDisplayName()
         {
-            var editableCollection = Produce<ClassWithChildrenWithDisplayNameProperty>().OfType<IEditableCollection>().First();
+            var editableCollection = Produce<ClassWithChildrenWithIsDisplayNameProperty>().OfType<IEditableCollection>().First();
 
             editableCollection.AddNewItemCommand.Execute(null);
 
@@ -102,9 +102,9 @@ namespace ReflectSettingsTests.Attributes
         }
 
         [Test]
-        public void ChildrenOfClassWithChildrenWithoutDisplayNamePropertyShouldGiveToStringAsDisplayName()
+        public void ChildrenOfClassWithChildrenWithoutIsDisplayNamePropertyShouldGiveToStringAsDisplayName()
         {
-            var editableCollection = Produce<ClassWithChildrenWithoutDisplayNameProperty>().OfType<IEditableCollection>().First();
+            var editableCollection = Produce<ClassWithChildrenWithoutIsDisplayNameProperty>().OfType<IEditableCollection>().First();
 
             editableCollection.AddNewItemCommand.Execute(null);
 

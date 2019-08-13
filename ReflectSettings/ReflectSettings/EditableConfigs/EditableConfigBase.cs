@@ -258,7 +258,10 @@ namespace ReflectSettings.EditableConfigs
 
         public string DisplayName => ResolveDisplayName();
 
-        protected virtual string ResolveDisplayName() => PropertyInfo.Name;
+        protected virtual string ResolveDisplayName()
+        {
+            return _attributes.OfType<NameAttribute>().FirstOrDefault()?.Name ?? PropertyInfo.Name;
+        }
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

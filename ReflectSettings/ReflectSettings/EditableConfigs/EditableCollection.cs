@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
@@ -33,6 +32,8 @@ namespace ReflectSettings.EditableConfigs
                 OnPropertyChanged();
             }
         }
+
+        public Type SubItemType => typeof(TItem);
 
         private void AddNewItem()
         {
