@@ -8,17 +8,17 @@ namespace ReflectSettingsTests
 {
     internal abstract class EditableConfigFactoryTestBase
     {
-        protected IEnumerable<IEditableConfig> Produce<T>()
+        protected IEnumerable<IEditableConfig> Produce<T>(bool useConfigurableItself = false)
         {
-            return Produce<T>(out var unused);
+            return Produce<T>(out var unused, useConfigurableItself);
         }
 
-        protected IEnumerable<IEditableConfig> Produce<T>(out T instance)
+        protected IEnumerable<IEditableConfig> Produce<T>(out T instance, bool useConfigurableItself = false)
         {
             instance = (T) Activator.CreateInstance(typeof(T));
             var factory = new SettingsFactory();
 
-            return factory.Reflect(instance).ToList();
+            return factory.Reflect(instance, useConfigurableItself).ToList();
         }
     }
 }

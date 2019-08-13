@@ -21,7 +21,12 @@ namespace ReflectSettings.EditableConfigs
 
         List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; }
 
+        bool IsDisplayNameProperty { get; }
+
         void UpdateCalculatedValues();
+
         event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
+
+        string DisplayName { get; }
     }
 }

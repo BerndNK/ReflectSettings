@@ -24,7 +24,7 @@
 
     <DataTemplate x:Key="EditableBoolTemplate" DataType="{x:Type editableConfigs:EditableInt}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <CheckBox IsChecked="{Binding Value, Mode=TwoWay}"/>
         </DockPanel>
@@ -41,49 +41,49 @@
 
     <DataTemplate x:Key="EditableIntTemplate" DataType="{x:Type editableConfigs:EditableInt}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <TextBox Text="{Binding Value, Mode=TwoWay}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableDoubleTemplate" DataType="{x:Type editableConfigs:EditableDouble}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <TextBox Text="{Binding Value, Mode=TwoWay}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableStringTemplate" DataType="{x:Type editableConfigs:EditableString}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <TextBox Text="{Binding Value, Mode=TwoWay}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableStringComboboxTemplate" DataType="{x:Type editableConfigs:EditableString}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding PredefinedValues}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableEnumTemplate" DataType="{x:Type editableConfigs:IEditableEnum}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding EnumValues}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableComplexComboboxTemplate" DataType="{x:Type editableConfigs:IEditableComplex}">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding PropertyInfo.Name, StringFormat=- {0}:}" Width="150"
+            <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
             <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding PredefinedValues}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableComplexTemplate" DataType="{x:Type editableConfigs:IEditableComplex}">
         <DockPanel>
-            <TextBlock Text="{Binding PropertyInfo.Name}" DockPanel.Dock="Top" FontSize="15" Foreground="AliceBlue"
+            <TextBlock Text="{Binding DisplayName}" DockPanel.Dock="Top" FontSize="15" Foreground="AliceBlue"
                        Opacity="0.5" />
             <GroupBox BorderBrush="#55FFFFFF" Margin="5" Padding="5" BorderThickness="0.1">
                 <ItemsControl ItemsSource="{Binding SubEditables}"
@@ -100,7 +100,7 @@
     <DataTemplate x:Key="EditableCollectionTemplate" DataType="{x:Type editableConfigs:IEditableCollection}">
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-                <TextBlock Text="{Binding PropertyInfo.Name}" DockPanel.Dock="Left" FontSize="15"
+                <TextBlock Text="{Binding DisplayName}" DockPanel.Dock="Left" FontSize="15"
                            Foreground="AliceBlue" Opacity="0.5" />
                 <Button Content="+" Background="Transparent" BorderBrush="Transparent" Command="{Binding AddNewItemCommand}" Foreground="White" DockPanel.Dock="Right"/>
                 <ContentPresenter Content="{Binding ItemToAddEditable}" ContentTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}" DockPanel.Dock="Right"/>
@@ -121,7 +121,7 @@
     <DataTemplate x:Key="ReadOnlyEditableCollectionTemplate" DataType="{x:Type editableConfigs:IEditableCollection}">
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-                <TextBlock Text="{Binding PropertyInfo.Name}" DockPanel.Dock="Left" FontSize="15"
+                <TextBlock Text="{Binding DisplayName}" DockPanel.Dock="Left" FontSize="15"
                            Foreground="AliceBlue" Opacity="0.5" />
             </DockPanel>
             <GroupBox BorderBrush="#55FFFFFF" Margin="5" Padding="5" BorderThickness="0.1">

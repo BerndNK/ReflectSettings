@@ -88,6 +88,8 @@ namespace ReflectSettings.EditableConfigs
 
         }
 
+        public bool IsDisplayNameProperty => _attributes.OfType<IsDisplayName>().FirstOrDefault() != null;
+
         public virtual void UpdateCalculatedValues()
         {
             if (!HasPredefinedValues)
@@ -253,6 +255,10 @@ namespace ReflectSettings.EditableConfigs
 
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
+
+        public string DisplayName => ResolveDisplayName();
+
+        protected virtual string ResolveDisplayName() => PropertyInfo.Name;
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

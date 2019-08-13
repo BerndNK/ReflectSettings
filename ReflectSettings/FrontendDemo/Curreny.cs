@@ -11,6 +11,7 @@ namespace FrontendDemo
         private string _name;
         private double _dollarToCurrencyFactory;
 
+        [IsDisplayName]
         public string Name
         {
             get => _name;
@@ -23,8 +24,6 @@ namespace FrontendDemo
         }
 
         public string DisplayName => $"{(string.IsNullOrWhiteSpace(Name) ? $"[{nameof(Curreny)}]" : Name)} 1$ = {DollarToCurrencyFactory}{Name}";
-
-        public List<string> SomeStrings { get; set; }
 
         [MinMax]
         public double DollarToCurrencyFactory

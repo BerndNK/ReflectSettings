@@ -8,7 +8,7 @@ using ReflectSettings.Attributes;
 namespace FrontendDemo
 {
     internal class ComplexConfiguration
-    {/*
+    {
         [UsedImplicitly]
         public string Username { get; set; }
 
@@ -37,7 +37,7 @@ namespace FrontendDemo
 
         public Curreny SomeCurrencyThatJustIsHereForDemonstrationPurposes { get; set; }
 
-        public CultureInfo CultureInfo { get; set; }*/
+        public CultureInfo CultureInfo { get; set; }
 
         [TypesForInstantiation(typeof(List<Curreny>))]
         public IList<Curreny> AllowedStringsForSubInstances { get; set; }

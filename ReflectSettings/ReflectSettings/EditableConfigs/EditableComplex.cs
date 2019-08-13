@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
@@ -46,16 +47,38 @@ namespace ReflectSettings.EditableConfigs
                 {
                     item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
                     item.ChangeTrackingManager = ChangeTrackingManager;
+                    if (item.IsDisplayNameProperty)
+                        item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
                     item.UpdateCalculatedValues();
                     SubEditables.Add(item);
                 }
             }
-                
         }
 
-        public ObservableCollection<IEditableConfig> SubEditables { get; private set; } = new ObservableCollection<IEditableConfig>();
+        private void OnDisplayNameEditablePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(DisplayName));
+        }
 
-        public EditableComplex(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
+        public ObservableCollection<IEditableConfig> SubEditables { get; private set; } =
+            new ObservableCollection<IEditableConfig>();
+
+        protected override string ResolveDisplayName()
+        {
+            var subEditableThatIsDisplayName = SubEditables.FirstOrDefault(x => x.IsDisplayNameProperty);
+            var displayName = subEditableThatIsDisplayName?.Value?.ToString();
+            if (displayName != null)
+                return displayName;
+
+            displayName = Value?.ToString();
+            if (displayName != null)
+                return displayName;
+
+            return base.ResolveDisplayName();
+        }
+
+        public EditableComplex(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
+            forInstance, propertyInfo, factory)
         {
             if (propertyInfo.PropertyType != typeof(T))
                 throw new ArgumentException(
@@ -65,13 +88,14 @@ namespace ReflectSettings.EditableConfigs
             Value = Value;
         }
 
-        
+
         public override void UpdateCalculatedValues()
         {
             base.UpdateCalculatedValues();
             foreach (var editable in SubEditables)
             {
-                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.InheritedCalculatedValuesAttribute.AddRange(
+                    AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
                 editable.UpdateCalculatedValues();
             }
         }
