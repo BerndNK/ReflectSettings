@@ -14,6 +14,8 @@ namespace ReflectSettings
             CollectionChanged += OnCollectionChanged;
         }
 
+        public event EventHandler ConfigurationChanged;
+
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
@@ -39,6 +41,8 @@ namespace ReflectSettings
 
         private void OnConfigValueChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (e.PropertyName != nameof(IEditableConfig.Value))
+                return;
             if (_suppressEvents)
                 return;
             _suppressEvents = true;
@@ -49,6 +53,7 @@ namespace ReflectSettings
             }
 
             _suppressEvents = false;
+            ConfigurationChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -8,6 +8,8 @@ namespace ReflectSettings.EditableConfigs
 {
     public class EditableComplex<T> : EditableConfigBase<T>, IEditableComplex where T : class
     {
+        private object _additionalData;
+
         protected override T ParseValue(object value)
         {
             if (value is T asT)
@@ -37,12 +39,27 @@ namespace ReflectSettings.EditableConfigs
             return newInstance;
         }
 
-        private void CreateSubEditables(T fromInstance)
+        public new object AdditionalData
+        {
+            get => _additionalData;
+            set
+            {
+                _additionalData = value;
+                foreach (var config in SubEditables)
+                {
+                    config.AdditionalData = value;
+                }
+
+                OnPropertyChanged();
+            }
+        }
+
+        protected virtual void CreateSubEditables(T fromInstance)
         {
             SubEditables.Clear();
             if (fromInstance != null)
             {
-                var subEditables = Factory.Reflect(fromInstance).ToList();
+                var subEditables = Factory.Reflect(fromInstance, out _).ToList();
                 foreach (var item in subEditables)
                 {
                     item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
@@ -50,6 +67,7 @@ namespace ReflectSettings.EditableConfigs
                     if (item.IsDisplayNameProperty)
                         item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
                     item.UpdateCalculatedValues();
+                    item.AdditionalData = AdditionalData;
                     SubEditables.Add(item);
                 }
             }

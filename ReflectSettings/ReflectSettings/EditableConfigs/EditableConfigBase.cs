@@ -15,6 +15,7 @@ namespace ReflectSettings.EditableConfigs
     {
         private readonly IList<Attribute> _attributes;
         private ChangeTrackingManager _changeTrackingManager;
+        private object _additionalData;
 
         protected SettingsFactory Factory { get; }
 
@@ -258,6 +259,16 @@ namespace ReflectSettings.EditableConfigs
 
         public string DisplayName => ResolveDisplayName();
 
+        public object AdditionalData
+        {
+            get => _additionalData;
+            set
+            {
+                _additionalData = value;
+                OnPropertyChanged();
+            }
+        }
+
         protected virtual string ResolveDisplayName()
         {
             return _attributes.OfType<NameAttribute>().FirstOrDefault()?.Name ?? PropertyInfo.Name;
@@ -268,5 +279,7 @@ namespace ReflectSettings.EditableConfigs
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public bool IsRemoving { get; set; }
     }
 }

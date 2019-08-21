@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using ReflectSettings.Attributes;
@@ -24,9 +25,9 @@ namespace ReflectSettings
         /// Creates IEditableConfig for each public get and set-able property of the given instance.
         /// Optionally gives a IEditableConfig for the given instance itself, instead of its properties.
         /// </summary>
-        public IEnumerable<IEditableConfig> Reflect(object configurable, bool useConfigurableItself = false)
+        public IEnumerable<IEditableConfig> Reflect(object configurable, out ChangeTrackingManager changeTrackingManager, bool useConfigurableItself = false)
         {
-            var changeTrackingManager = new ChangeTrackingManager();
+            changeTrackingManager = new ChangeTrackingManager();
             if (useConfigurableItself)
             {
                 var wrapperType = typeof(InstanceWrapper<>).MakeGenericType(configurable.GetType());
@@ -37,7 +38,8 @@ namespace ReflectSettings
             else
             {
                 var editableProperties = EditableProperties(configurable.GetType());
-                return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t, changeTrackingManager));
+                var trackingManager = changeTrackingManager;
+                return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t, trackingManager));
             }
         }
 

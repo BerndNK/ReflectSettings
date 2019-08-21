@@ -100,5 +100,34 @@ namespace ReflectSettingsTests.EditableConfigs
 
             Assert.That(instance.Dictionary.First().Key, Is.EqualTo(newKey));
         }
+
+        [Test]
+        public void RemoveCommandRemovesItem()
+        {
+            var result = Produce<ClassWithDictionary>(out var instance);
+            var editableCollection = result.OfType<IEditableCollection>().First();
+            editableCollection.ItemToAddEditable.Value = new KeyValuePair<string, string>("Key", "Value");
+            editableCollection.AddNewItemCommand.Execute(null);
+
+            var itemToRemove = instance.Dictionary.First();
+
+            editableCollection.RemoveItemCommand.Execute(itemToRemove);
+
+            Assert.That(instance.Dictionary.Any(), Is.False);
+        }
+
+        [Test]
+        public void SubEditablesGetAdditionalDataFromParent()
+        {
+            var result = Produce<ClassWithDictionary>(out var instance);
+            var additionalData = new { };
+            var editableCollection = result.OfType<IEditableCollection>().First();
+            editableCollection.AdditionalData = additionalData;
+            editableCollection.ItemToAddEditable.Value = new KeyValuePair<string, string>("Key", "Value");
+
+            editableCollection.AddNewItemCommand.Execute(null);
+
+            Assert.That(editableCollection.SubEditables.All(x => x.AdditionalData.Equals(additionalData)), Is.True);
+        }
     }
 }

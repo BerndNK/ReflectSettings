@@ -12,33 +12,66 @@ namespace ReflectSettings.EditableConfigs
         ICollection<TItem> where TCollection : class, ICollection<TItem>
     {
         private IEditableConfig _itemToAddEditable;
+        private object _additionalData;
 
         public EditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
             forInstance, propertyInfo, factory)
         {
             Value = Value;
             AddNewItemCommand = new DelegateCommand(AddNewItem);
+            RemoveItemCommand = new DelegateCommand(RemoveItem);
             PrepareItemToAdd();
         }
 
         public ICommand AddNewItemCommand { get; }
+
+        public ICommand RemoveItemCommand { get; }
 
         public IEditableConfig ItemToAddEditable
         {
             get => _itemToAddEditable;
             private set
             {
-                _itemToAddEditable = value; 
+                _itemToAddEditable = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public new object AdditionalData
+        {
+            get => _additionalData;
+            set
+            {
+                _additionalData = value;
+                foreach (var config in SubEditables)
+                {
+                    config.AdditionalData = value;
+                }
+
+                if (ItemToAddEditable != null)
+                    ItemToAddEditable.AdditionalData = AdditionalData;
+
                 OnPropertyChanged();
             }
         }
 
         public Type SubItemType => typeof(TItem);
 
+        public int ItemCount => AsCollection?.Count ?? 0;
+
         private void AddNewItem()
         {
             Add((TItem) ItemToAddEditable.Value);
             PrepareItemToAdd();
+        }
+
+        private void RemoveItem(object parameter)
+        {
+            if (!(parameter is TItem asT))
+                return;
+
+            if (AsCollection.Contains(asT))
+                Remove(asT);
         }
 
         private void PrepareItemToAdd()
@@ -77,6 +110,7 @@ namespace ReflectSettings.EditableConfigs
             SubEditables.Clear();
             foreach (var editableConfig in collection.Select(EditableConfigFor))
             {
+                editableConfig.AdditionalData = AdditionalData;
                 SubEditables.Add(editableConfig);
             }
         }
@@ -104,6 +138,7 @@ namespace ReflectSettings.EditableConfigs
                 editable.ValueChanged += OnPrimitiveChildValueChanged;
 
             SubEditables.Add(editable);
+            OnPropertyChanged(nameof(ItemCount));
             OnPropertyChanged(nameof(SubEditables));
         }
 
@@ -118,7 +153,7 @@ namespace ReflectSettings.EditableConfigs
                 asList[indexOfEditable] = newValue;
             else
             {
-                if(AsCollection.Contains(oldValue))
+                if (AsCollection.Contains(oldValue))
                 {
                     AsCollection.Remove(oldValue);
                     AsCollection.Add(newValue);
@@ -143,6 +178,8 @@ namespace ReflectSettings.EditableConfigs
             {
                 SubEditables.Remove(SubEditables.First(x => x.Value.Equals(item)));
                 OnPropertyChanged(nameof(SubEditables));
+                OnPropertyChanged(nameof(ItemCount));
+                OnPropertyChanged(nameof(Value));
                 return true;
             }
             else
@@ -158,10 +195,11 @@ namespace ReflectSettings.EditableConfigs
 
         private IEditableConfig EditableConfigFor(TItem item)
         {
-            var config = Factory.Reflect(item, true).First();
+            var config = Factory.Reflect(item, out _, true).First();
             config.ChangeTrackingManager = ChangeTrackingManager;
             config.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
             config.UpdateCalculatedValues();
+            config.AdditionalData = AdditionalData;
             return config;
         }
 
@@ -170,14 +208,16 @@ namespace ReflectSettings.EditableConfigs
             base.UpdateCalculatedValues();
             foreach (var editable in SubEditables)
             {
-                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.InheritedCalculatedValuesAttribute.AddRange(
+                    AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
                 editable.UpdateCalculatedValues();
             }
 
             if (ItemToAddEditable == null)
                 return;
 
-            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
+            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(
+                AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
             ItemToAddEditable.UpdateCalculatedValues();
         }
 
@@ -188,7 +228,8 @@ namespace ReflectSettings.EditableConfigs
             {
                 editable.ChangeTrackingManager = value;
             }
-            if (ItemToAddEditable==null)
+
+            if (ItemToAddEditable == null)
                 return;
 
             ItemToAddEditable.ChangeTrackingManager = value;

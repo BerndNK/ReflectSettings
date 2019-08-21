@@ -5,11 +5,16 @@ namespace ReflectSettings.EditableConfigs
 {
     public class DelegateCommand : ICommand
     {
-        private readonly Action _execute;
+        private readonly Action<object> _execute;
  
         public event EventHandler CanExecuteChanged;
  
         public DelegateCommand(Action execute)
+        {
+            _execute = x => execute();
+        }
+
+        public DelegateCommand(Action<object> execute)
         {
             _execute = execute;
         }
@@ -18,7 +23,7 @@ namespace ReflectSettings.EditableConfigs
  
         public void Execute(object parameter)
         {
-            _execute();
+            _execute(parameter);
         }
     }
 }

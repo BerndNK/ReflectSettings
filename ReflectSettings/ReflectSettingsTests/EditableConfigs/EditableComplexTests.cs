@@ -64,5 +64,15 @@ namespace ReflectSettingsTests.EditableConfigs
             
             Assert.That(instance.SubClass, Is.EqualTo(null));
         }
+
+        [Test]
+        public void SubEditablesShouldReceiveAdditionalDataFromParent()
+        {
+            var result = Produce<ClassWithComplexProperty>();
+            var complexProperty = (EditableComplex<SubClass>) result.First(c => c.PropertyInfo.Name == nameof(ClassWithComplexProperty.SubClass));
+            complexProperty.AdditionalData = new { };
+
+            Assert.That(complexProperty.SubEditables.All(x => x.AdditionalData == complexProperty.AdditionalData), Is.True);
+        }
     }
 }

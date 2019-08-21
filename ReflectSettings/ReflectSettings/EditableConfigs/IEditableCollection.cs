@@ -11,6 +11,8 @@ namespace ReflectSettings.EditableConfigs
 
         ICommand AddNewItemCommand { get; }
 
+        ICommand RemoveItemCommand { get; }
+
         /// <summary>
         /// Editable for the instance that would be added when the AddNewItemCommand gets executed.
         /// This is to edit the properties before actually adding the item to the collection.
@@ -18,5 +20,7 @@ namespace ReflectSettings.EditableConfigs
         IEditableConfig ItemToAddEditable { get; }
 
         Type SubItemType { get; }
+
+        int ItemCount { get; }
     }
 }

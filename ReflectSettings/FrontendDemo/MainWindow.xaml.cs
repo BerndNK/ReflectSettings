@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using ReflectSettings;
 using ReflectSettings.EditableConfigs;
@@ -9,7 +10,8 @@ namespace FrontendDemo
 {
     public partial class MainWindow
     {
-        private ComplexConfiguration _complexConfiguration;
+        private readonly ComplexConfiguration _complexConfiguration;
+        [UsedImplicitly]
         public ObservableCollection<IEditableConfig> Editables { get; set; }
 
         private const string JsonFilePath = "Config.json";
@@ -24,7 +26,7 @@ namespace FrontendDemo
             if (File.Exists(JsonFilePath))
                 _complexConfiguration = JsonConvert.DeserializeObject<ComplexConfiguration>(File.ReadAllText(JsonFilePath));
 
-            var editableConfigs = fac.Reflect(_complexConfiguration);
+            var editableConfigs = fac.Reflect(_complexConfiguration, out var changeTrackingManager);
 
             foreach (var config in editableConfigs)
             {
