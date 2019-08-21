@@ -69,6 +69,8 @@ namespace ReflectSettings.EditableConfigs
                                            AllCalculatedValuesAttribute.Any(x => x.Key == null) ||
                                            PropertyInfo.PropertyType.IsEnum;
 
+        public bool HasCalculatedType => AllCalculatedTypeAttributes.Any(x => x.Key == null);
+
         public ChangeTrackingManager ChangeTrackingManager
         {
             get => _changeTrackingManager;
@@ -86,14 +88,13 @@ namespace ReflectSettings.EditableConfigs
 
         protected virtual void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
         {
-
         }
 
         public bool IsDisplayNameProperty => _attributes.OfType<IsDisplayName>().FirstOrDefault() != null;
 
         public virtual void UpdateCalculatedValues()
         {
-            if (!HasPredefinedValues)
+            if (!HasPredefinedValues && !HasCalculatedType)
                 return;
 
             var existingValues = PredefinedValues.ToList();
@@ -108,7 +109,7 @@ namespace ReflectSettings.EditableConfigs
                 PredefinedValues.Add(value);
                 somethingChanged = true;
             }
-            
+
             if (somethingChanged)
             {
                 Value = Value;
@@ -120,8 +121,11 @@ namespace ReflectSettings.EditableConfigs
                 PredefinedValues.Remove(value);
                 somethingChanged = true;
             }
+
+            var valueTypeDiffersFromPredefined = Value?.GetType() != GetPredefinedType();
             
-            if (somethingChanged)
+
+            if (somethingChanged || (HasCalculatedType && valueTypeDiffersFromPredefined))
             {
                 Value = Value;
             }
@@ -129,17 +133,30 @@ namespace ReflectSettings.EditableConfigs
 
         private void InitCalculatedAttributes()
         {
-            foreach (var attribute in Attributes<CalculatedValuesAttribute>())
+            foreach (var attribute in _attributes.OfType<INeedsInstance>())
             {
                 attribute.AttachedToInstance = ForInstance;
             }
         }
 
-        public List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; } = new List<CalculatedValuesAttribute>();
+        public List<CalculatedTypeAttribute> InheritedCalculatedTypeAttribute { get; } =
+            new List<CalculatedTypeAttribute>();
 
-        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttribute => InheritedCalculatedValuesAttribute.Concat(Attributes<CalculatedValuesAttribute>());
+        protected IEnumerable<CalculatedTypeAttribute> AllCalculatedTypeAttributes =>
+            InheritedCalculatedTypeAttribute.Concat(Attributes<CalculatedTypeAttribute>());
 
-        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttributeForChildren => AllCalculatedValuesAttribute.Where(x => x.Key != null || x.ForCollectionEntries);
+        protected IEnumerable<CalculatedTypeAttribute> AllCalculatedTypeAttributeForChildren =>
+            AllCalculatedTypeAttributes.Where(x => x.Key != null || x.ForCollectionEntries);
+
+
+        public List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; } =
+            new List<CalculatedValuesAttribute>();
+
+        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttribute =>
+            InheritedCalculatedValuesAttribute.Concat(Attributes<CalculatedValuesAttribute>());
+
+        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttributeForChildren =>
+            AllCalculatedValuesAttribute.Where(x => x.Key != null || x.ForCollectionEntries);
 
         protected IEnumerable<T> GetPredefinedValues()
         {
@@ -147,7 +164,8 @@ namespace ReflectSettings.EditableConfigs
             // methods with a key are only used when the specific key is used as the resolution name of the attribute
             var calculatedValuesAttributes = AllCalculatedValuesAttribute.Where(x => x.Key == null);
 
-            var calculatedValues = calculatedValuesAttributes.SelectMany(x => x.CallMethod(InheritedCalculatedValuesAttribute));
+            var calculatedValues =
+                calculatedValuesAttributes.SelectMany(x => x.CallMethod(InheritedCalculatedValuesAttribute));
 
             var concat = staticValues.Values.Concat(calculatedValues).ToList();
             var toReturn = concat.OfType<T>().Except(ForbiddenValues()).ToList();
@@ -160,7 +178,31 @@ namespace ReflectSettings.EditableConfigs
             return toReturn;
         }
 
-        protected TObject InstantiateObject<TObject>()
+        protected Type GetPredefinedType()
+        {
+            // methods with a key are only used when the specific key is used as the resolution name of the attribute
+            var calculatedTypeAttributes = AllCalculatedTypeAttributes.Where(x => x.Key == null);
+
+            var calculatedTypes =
+                calculatedTypeAttributes.Select(x => x.CallMethod(InheritedCalculatedTypeAttribute, ForInstance));
+
+            return calculatedTypes.FirstOrDefault(IsAssignableToT) ?? typeof(T);
+        }
+
+        private bool IsAssignableToT(Type type) => typeof(T).IsAssignableFrom(type) && type != typeof(object);
+
+        protected object InstantiateObjectOfSpecificType(Type type)
+        {
+            var method = GetType().GetMethod(nameof(InstantiateObject));
+            if (method == null)
+                return default;
+
+            var asGeneric = method.MakeGenericMethod(type);
+
+            return asGeneric.Invoke(this, null);
+        }
+
+        public TObject InstantiateObject<TObject>()
         {
             var targetType = typeof(TObject);
             var typeToInstantiate = targetType;
@@ -200,9 +242,15 @@ namespace ReflectSettings.EditableConfigs
             if (value == null)
                 return false;
 
+            var isTypeAllowed = GetPredefinedType().IsInstanceOfType(value);
+
             var predefinedValues = GetPredefinedValues().ToList();
-            var isValueAllowed = predefinedValues.Count == 0 || predefinedValues.Any(v => v.Equals(value));
+            var isPredefinedValueOrNoPredefinedValuesGiven =
+                predefinedValues.Count == 0 || predefinedValues.Any(v => v.Equals(value));
+
+            var isValueAllowed = isPredefinedValueOrNoPredefinedValuesGiven && isTypeAllowed;
             var isValueForbidden = ForbiddenValues().Any(v => v.Equals(value));
+
 
             return isValueAllowed && !isValueForbidden;
         }

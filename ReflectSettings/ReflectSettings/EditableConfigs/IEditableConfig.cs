@@ -22,6 +22,8 @@ namespace ReflectSettings.EditableConfigs
 
         List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; }
 
+        List<CalculatedTypeAttribute> InheritedCalculatedTypeAttribute { get; }
+
         bool IsDisplayNameProperty { get; }
 
         void UpdateCalculatedValues();
@@ -34,5 +36,7 @@ namespace ReflectSettings.EditableConfigs
         /// Property to store custom data into
         /// </summary>
         object AdditionalData { get; set; }
+
+        bool HasCalculatedType { get; }
     }
 }

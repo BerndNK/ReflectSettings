@@ -34,7 +34,7 @@ namespace ReflectSettings.EditableConfigs
                 return predefinedValues.First();
 
             // otherwise create a new instance
-            var newInstance = InstantiateObject<T>();
+            var newInstance = (T) InstantiateObjectOfSpecificType(GetPredefinedType());
             CreateSubEditables(newInstance);
             return newInstance;
         }
@@ -63,6 +63,7 @@ namespace ReflectSettings.EditableConfigs
                 foreach (var item in subEditables)
                 {
                     item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
+                    item.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren);
                     item.ChangeTrackingManager = ChangeTrackingManager;
                     if (item.IsDisplayNameProperty)
                         item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
@@ -114,6 +115,10 @@ namespace ReflectSettings.EditableConfigs
             {
                 editable.InheritedCalculatedValuesAttribute.AddRange(
                     AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+
+                editable.InheritedCalculatedTypeAttribute.AddRange(
+                    AllCalculatedTypeAttributeForChildren.Except(editable.InheritedCalculatedTypeAttribute));
+
                 editable.UpdateCalculatedValues();
             }
         }

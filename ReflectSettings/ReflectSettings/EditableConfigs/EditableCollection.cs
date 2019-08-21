@@ -107,7 +107,7 @@ namespace ReflectSettings.EditableConfigs
 
         private void CreateSubEditables(TCollection collection)
         {
-            SubEditables.Clear();
+            ClearSubEditables();
             foreach (var editableConfig in collection.Select(EditableConfigFor))
             {
                 editableConfig.AdditionalData = AdditionalData;
@@ -149,6 +149,7 @@ namespace ReflectSettings.EditableConfigs
 
             var changedChild = (IEditableConfig) sender;
             var indexOfEditable = SubEditables.IndexOf(changedChild);
+
             if (Value is IList<TItem> asList)
                 asList[indexOfEditable] = newValue;
             else
@@ -161,10 +162,19 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
+        private void ClearSubEditables()
+        {
+            foreach (var editable in SubEditables)
+            {
+                editable.ValueChanged -= OnPrimitiveChildValueChanged;
+            }
+            SubEditables.Clear();
+        }
+
         public void Clear()
         {
             AsCollection.Clear();
-            SubEditables.Clear();
+            ClearSubEditables();
             OnPropertyChanged(nameof(SubEditables));
         }
 
@@ -198,6 +208,7 @@ namespace ReflectSettings.EditableConfigs
             var config = Factory.Reflect(item, out _, true).First();
             config.ChangeTrackingManager = ChangeTrackingManager;
             config.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
+            config.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren);
             config.UpdateCalculatedValues();
             config.AdditionalData = AdditionalData;
             return config;
@@ -208,16 +219,16 @@ namespace ReflectSettings.EditableConfigs
             base.UpdateCalculatedValues();
             foreach (var editable in SubEditables)
             {
-                editable.InheritedCalculatedValuesAttribute.AddRange(
-                    AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren.Except(editable.InheritedCalculatedTypeAttribute));
                 editable.UpdateCalculatedValues();
             }
 
             if (ItemToAddEditable == null)
                 return;
 
-            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(
-                AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
+            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
+            ItemToAddEditable.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedTypeAttribute));
             ItemToAddEditable.UpdateCalculatedValues();
         }
 
