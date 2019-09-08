@@ -38,5 +38,7 @@ namespace ReflectSettings.EditableConfigs
         object AdditionalData { get; set; }
 
         bool HasCalculatedType { get; }
+
+        bool IsHidden { get; }
     }
 }

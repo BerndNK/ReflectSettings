@@ -307,6 +307,8 @@ namespace ReflectSettings.EditableConfigs
 
         public string DisplayName => ResolveDisplayName();
 
+        public bool IsHidden => _attributes.OfType<IsHiddenAttribute>().Any();
+
         public object AdditionalData
         {
             get => _additionalData;

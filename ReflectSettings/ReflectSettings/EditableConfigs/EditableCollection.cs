@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
@@ -21,6 +22,18 @@ namespace ReflectSettings.EditableConfigs
             AddNewItemCommand = new DelegateCommand(AddNewItem);
             RemoveItemCommand = new DelegateCommand(RemoveItem);
             PrepareItemToAdd();
+        }
+
+        public TItem SelectedItem { get; set; }
+
+        public object SelectedValue
+        {
+            get => SelectedItem;
+            set
+            {
+                if (value is TItem asItem)
+                    SelectedItem = asItem;
+            }
         }
 
         public ICommand AddNewItemCommand { get; }
@@ -61,8 +74,10 @@ namespace ReflectSettings.EditableConfigs
 
         private void AddNewItem()
         {
-            Add((TItem) ItemToAddEditable.Value);
+            var newItem = (TItem) ItemToAddEditable.Value;
+            Add(newItem);
             PrepareItemToAdd();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<TItem> {newItem}));
         }
 
         private void RemoveItem(object parameter)
@@ -71,7 +86,10 @@ namespace ReflectSettings.EditableConfigs
                 return;
 
             if (AsCollection.Contains(asT))
-                Remove(asT);
+            {
+                if(Remove(asT))
+                    CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<TItem> {asT}));
+            }
         }
 
         private void PrepareItemToAdd()
@@ -168,6 +186,7 @@ namespace ReflectSettings.EditableConfigs
             {
                 editable.ValueChanged -= OnPrimitiveChildValueChanged;
             }
+
             SubEditables.Clear();
         }
 
@@ -219,16 +238,20 @@ namespace ReflectSettings.EditableConfigs
             base.UpdateCalculatedValues();
             foreach (var editable in SubEditables)
             {
-                editable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
-                editable.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren.Except(editable.InheritedCalculatedTypeAttribute));
+                editable.InheritedCalculatedValuesAttribute.AddRange(
+                    AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
+                editable.InheritedCalculatedTypeAttribute.AddRange(
+                    AllCalculatedTypeAttributeForChildren.Except(editable.InheritedCalculatedTypeAttribute));
                 editable.UpdateCalculatedValues();
             }
 
             if (ItemToAddEditable == null)
                 return;
 
-            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
-            ItemToAddEditable.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedTypeAttribute));
+            ItemToAddEditable.InheritedCalculatedValuesAttribute.AddRange(
+                AllCalculatedValuesAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedValuesAttribute));
+            ItemToAddEditable.InheritedCalculatedTypeAttribute.AddRange(
+                AllCalculatedTypeAttributeForChildren.Except(ItemToAddEditable.InheritedCalculatedTypeAttribute));
             ItemToAddEditable.UpdateCalculatedValues();
         }
 
@@ -245,5 +268,7 @@ namespace ReflectSettings.EditableConfigs
 
             ItemToAddEditable.ChangeTrackingManager = value;
         }
+
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
     }
 }
