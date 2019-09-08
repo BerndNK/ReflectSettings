@@ -228,6 +228,7 @@ namespace ReflectSettings.EditableConfigs
             config.ChangeTrackingManager = ChangeTrackingManager;
             config.CalculatedValues.InheritFrom(CalculatedValues);
             config.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
+            config.CalculatedVisibility.InheritFrom(CalculatedVisibility);
             config.CalculatedTypes.InheritFrom(CalculatedTypes);
             config.UpdateCalculatedValues();
             config.AdditionalData = AdditionalData;
@@ -242,6 +243,7 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedValues.InheritFrom(CalculatedValues);
                 editable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
+                editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
 
                 editable.UpdateCalculatedValues();
             }
@@ -252,6 +254,7 @@ namespace ReflectSettings.EditableConfigs
             ItemToAddEditable.CalculatedValues.InheritFrom(CalculatedValues);
             ItemToAddEditable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
             ItemToAddEditable.CalculatedTypes.InheritFrom(CalculatedTypes);
+            ItemToAddEditable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
 
             ItemToAddEditable.UpdateCalculatedValues();
         }

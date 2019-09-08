@@ -174,7 +174,7 @@ namespace ReflectSettingsTests.Attributes
             Assert.That(toTest.Value, Is.EqualTo(someValue));
             Assert.That(toTest.IsBusy, Is.True);
 
-            await WaitWithTimeout(WaitUntilNotBusy(toTest), 15000000);
+            await WaitWithTimeout(WaitUntilNotBusy(toTest), 1500);
 
             Assert.That(toTest.IsBusy, Is.False);
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));

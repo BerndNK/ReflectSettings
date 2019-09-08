@@ -66,6 +66,7 @@ namespace ReflectSettings.EditableConfigs
                     item.CalculatedValues.InheritFrom(CalculatedValues);
                     item.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                     item.CalculatedTypes.InheritFrom(CalculatedTypes);
+                    item.CalculatedVisibility.InheritFrom(CalculatedVisibility);
                     item.ChangeTrackingManager = ChangeTrackingManager;
                     if (item.IsDisplayNameProperty)
                         item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
@@ -118,6 +119,7 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedValues.InheritFrom(CalculatedValues);
                 editable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
+                editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
 
                 editable.UpdateCalculatedValues();
             }

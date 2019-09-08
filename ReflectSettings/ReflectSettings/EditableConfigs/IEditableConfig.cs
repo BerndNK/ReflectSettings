@@ -20,6 +20,8 @@ namespace ReflectSettings.EditableConfigs
 
         ChangeTrackingManager ChangeTrackingManager { get; set; }
 
+        InheritedAttributes<CalculatedVisibilityAttribute> CalculatedVisibility { get; }
+
         InheritedAttributes<CalculatedTypeAttribute> CalculatedTypes { get; }
 
         InheritedAttributes<CalculatedValuesAttribute> CalculatedValues { get; }

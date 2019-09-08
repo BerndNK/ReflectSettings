@@ -222,6 +222,7 @@ namespace ReflectSettings.EditableConfigs
                 _taskThatCameInWhileAnotherWasStillRunning = null;
 
                 await taskMethod();
+                Value = Value;
             }
 
             lock (_currentRunningThreadMutex)
@@ -240,6 +241,8 @@ namespace ReflectSettings.EditableConfigs
                 attribute.AttachedToInstance = ForInstance;
             }
 
+            CalculatedVisibility =
+                new InheritedAttributes<CalculatedVisibilityAttribute>(_attributes.OfType<CalculatedVisibilityAttribute>());
             CalculatedValues =
                 new InheritedAttributes<CalculatedValuesAttribute>(_attributes.OfType<CalculatedValuesAttribute>());
             CalculatedTypes =
@@ -248,6 +251,8 @@ namespace ReflectSettings.EditableConfigs
                 new InheritedAttributes<CalculatedValuesAsyncAttribute>(_attributes
                     .OfType<CalculatedValuesAsyncAttribute>());
         }
+
+        public InheritedAttributes<CalculatedVisibilityAttribute> CalculatedVisibility { get; private set; }
 
         public InheritedAttributes<CalculatedTypeAttribute> CalculatedTypes { get; private set; }
 
@@ -412,7 +417,7 @@ namespace ReflectSettings.EditableConfigs
 
         public string DisplayName => ResolveDisplayName();
 
-        public bool IsHidden => _attributes.OfType<IsHiddenAttribute>().Any();
+        public bool IsHidden => _attributes.OfType<IsHiddenAttribute>().Any() || CalculatedVisibility.ForThis.Any(x => x.IsHidden(CalculatedVisibility.Inherited));
 
         public bool IsBusy { get; private set; }
 
