@@ -98,6 +98,7 @@ namespace ReflectSettings.EditableConfigs
 
         public virtual void UpdateCalculatedValues()
         {
+            OnPropertyChanged(nameof(IsHidden));
             if (!HasPredefinedValues && !HasCalculatedType)
                 return;
 
