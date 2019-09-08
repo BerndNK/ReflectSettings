@@ -26,7 +26,7 @@ namespace ReflectSettings.EditableConfigs
             }
 
             // if null is allowed, return null
-            if (GetPredefinedValues().Any(x => x == null))
+            if (PredefinedValues.Any(x => x == null))
                 return null;
 
             // otherwise create a new instance

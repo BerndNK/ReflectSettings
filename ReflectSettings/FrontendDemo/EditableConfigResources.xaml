@@ -3,6 +3,7 @@
                     xmlns:local="clr-namespace:FrontendDemo"
                     xmlns:editableConfigs="clr-namespace:ReflectSettings.EditableConfigs;assembly=ReflectSettings">
 
+
     <Style TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="5" />
     </Style>
@@ -64,7 +65,10 @@
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
-            <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding PredefinedValues}" />
+
+            <ComboBox ItemsSource="{Binding PredefinedValues}"
+                      SelectedItem="{Binding Value, Mode=TwoWay}"
+                      IsEnabled="{Binding IsBusy, Converter={x:Static local:InvertedBoolConverter.Instance}}"/>
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableEnumTemplate" DataType="{x:Type editableConfigs:IEditableEnum}">

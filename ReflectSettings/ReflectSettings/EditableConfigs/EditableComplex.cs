@@ -26,12 +26,13 @@ namespace ReflectSettings.EditableConfigs
             }
 
             // if null is allowed, return null
-            var predefinedValues = GetPredefinedValues().ToList();
-            if (predefinedValues.Any(x => x == null))
+            var isNullAllowed = PredefinedValues.Any(x => x == null);
+            if (isNullAllowed)
                 return null;
-
-            if (predefinedValues.Any())
-                return predefinedValues.First();
+            
+            var predefinedValuesOfT = PredefinedValues.OfType<T>().ToList();
+            if (predefinedValuesOfT.Any())
+                return predefinedValuesOfT.First();
 
             // otherwise create a new instance
             var newInstance = (T) InstantiateObjectOfSpecificType(GetPredefinedType());
@@ -62,8 +63,9 @@ namespace ReflectSettings.EditableConfigs
                 var subEditables = Factory.Reflect(fromInstance, out _).ToList();
                 foreach (var item in subEditables)
                 {
-                    item.InheritedCalculatedValuesAttribute.AddRange(AllCalculatedValuesAttributeForChildren);
-                    item.InheritedCalculatedTypeAttribute.AddRange(AllCalculatedTypeAttributeForChildren);
+                    item.CalculatedValues.InheritFrom(CalculatedValues);
+                    item.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
+                    item.CalculatedTypes.InheritFrom(CalculatedTypes);
                     item.ChangeTrackingManager = ChangeTrackingManager;
                     if (item.IsDisplayNameProperty)
                         item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
@@ -113,11 +115,9 @@ namespace ReflectSettings.EditableConfigs
             base.UpdateCalculatedValues();
             foreach (var editable in SubEditables)
             {
-                editable.InheritedCalculatedValuesAttribute.AddRange(
-                    AllCalculatedValuesAttributeForChildren.Except(editable.InheritedCalculatedValuesAttribute));
-
-                editable.InheritedCalculatedTypeAttribute.AddRange(
-                    AllCalculatedTypeAttributeForChildren.Except(editable.InheritedCalculatedTypeAttribute));
+                editable.CalculatedValues.InheritFrom(CalculatedValues);
+                editable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
+                editable.CalculatedTypes.InheritFrom(CalculatedTypes);
 
                 editable.UpdateCalculatedValues();
             }
