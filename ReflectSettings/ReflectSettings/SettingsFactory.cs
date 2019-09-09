@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using ReflectSettings.Attributes;
 using ReflectSettings.EditableConfigs;
 
@@ -48,7 +48,8 @@ namespace ReflectSettings
             {typeof(int), typeof(EditableInt)},
             {typeof(double), typeof(EditableDouble)},
             {typeof(string), typeof(EditableString)},
-            {typeof(bool), typeof(EditableBool)}
+            {typeof(bool), typeof(EditableBool)},
+            {typeof(SecureString), typeof(EditableSecureString)}
         };
 
         private IEditableConfig EditableConfigFromPropertyInfo(object configurable, PropertyInfo propertyInfo, ChangeTrackingManager changeTrackingManager)

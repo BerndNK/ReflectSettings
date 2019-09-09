@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -21,6 +22,8 @@ namespace FrontendDemo
         public string Gender { get; set; }
 
         public string Url { get; set; }
+
+        public SecureString Password { get; set; }
 
         [CalculatedValuesAsync(nameof(LoadHtml))]
         public string ImTheHtmlOfThrUrl { get; set; }
