@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using ReflectSettings;
 using ReflectSettings.EditableConfigs;
 
 namespace ReflectSettingsTests.EditableConfigs
@@ -23,7 +24,7 @@ namespace ReflectSettingsTests.EditableConfigs
             [UsedImplicitly]
             public ObservableCollection<string> StringList { get; set; }
         }
-        
+
         [UsedImplicitly]
         private class ClassWithDictionary
         {
@@ -44,7 +45,7 @@ namespace ReflectSettingsTests.EditableConfigs
         {
             var result = Produce<ClassWithListProperty>(out var instance);
             var collectionProperty = (ICollection<string>) result.First(c => c.PropertyInfo.Name == nameof(ClassWithListProperty.StringList));
-            
+
             collectionProperty.Add("");
 
             Assert.That(instance.StringList.Count, Is.EqualTo(1));
@@ -68,7 +69,7 @@ namespace ReflectSettingsTests.EditableConfigs
         public void ObservableCollectionPropertyResultsInCollectionEditable()
         {
             var result = Produce<ClassWithListProperty>(out var instance);
-            
+
             Assert.That(instance.StringList, Is.Not.Null);
         }
 
@@ -128,6 +129,37 @@ namespace ReflectSettingsTests.EditableConfigs
             editableCollection.AddNewItemCommand.Execute(null);
 
             Assert.That(editableCollection.SubEditables.All(x => x.AdditionalData.Equals(additionalData)), Is.True);
+        }
+
+        [Test]
+        public void ListOfPrimitiveStringUpdatesValue()
+        {
+            var result = Produce<ClassWithObservableCollectionProperty>(out var instance);
+            var editableList = result.OfType<IEditableCollection>().First();
+            editableList.AddNewItemCommand.Execute(null);
+
+            var stringEditable = editableList.SubEditables.First();
+            const string newValue = "NewValue";
+            stringEditable.Value = newValue;
+
+            Assert.That(instance.StringList.First(), Is.EqualTo(newValue));
+        }
+
+        [Test]
+        public void ExistingListOfPrimitiveStringUpdatesValue()
+        {
+            var instance = new ClassWithObservableCollectionProperty {StringList = new ObservableCollection<string> {"OldValue"}};
+            var factory = new SettingsFactory();
+            var editables = factory.Reflect(instance, out var changeTrackingManager).ToList();
+
+            var editableList = editables.OfType<IEditableCollection>().First();
+            editableList.AddNewItemCommand.Execute(null);
+
+            var stringEditable = editableList.SubEditables.First();
+            const string newValue = "NewValue";
+            stringEditable.Value = newValue;
+
+            Assert.That(instance.StringList.First(), Is.EqualTo(newValue));
         }
     }
 }

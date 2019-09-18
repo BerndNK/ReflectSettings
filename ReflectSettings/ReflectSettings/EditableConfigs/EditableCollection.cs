@@ -108,10 +108,14 @@ namespace ReflectSettings.EditableConfigs
         private void CreateSubEditables(TCollection collection)
         {
             ClearSubEditables();
-            foreach (var editableConfig in collection.Select(EditableConfigFor))
+            foreach (var editable in collection.Select(EditableConfigFor))
             {
-                editableConfig.AdditionalData = AdditionalData;
-                SubEditables.Add(editableConfig);
+                editable.AdditionalData = AdditionalData;
+
+                if (typeof(TItem).IsPrimitive || typeof(TItem) == typeof(string) || editable is IEditableKeyValuePair)
+                    editable.ValueChanged += OnPrimitiveChildValueChanged;
+
+                SubEditables.Add(editable);
             }
         }
 
