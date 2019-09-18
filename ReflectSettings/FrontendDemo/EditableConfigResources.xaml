@@ -3,6 +3,7 @@
                     xmlns:local="clr-namespace:FrontendDemo"
                     xmlns:editableConfigs="clr-namespace:ReflectSettings.EditableConfigs;assembly=ReflectSettings">
 
+
     <Style TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="5" />
     </Style>
@@ -19,23 +20,23 @@
     </Style>
 
     <DataTemplate DataType="{x:Type local:Curreny}">
-        <TextBlock Text="{Binding DisplayName}" Foreground="Black" FontWeight="Bold"/>
+        <TextBlock Text="{Binding DisplayName}" Foreground="Black" FontWeight="Bold" />
     </DataTemplate>
 
     <DataTemplate x:Key="EditableBoolTemplate" DataType="{x:Type editableConfigs:EditableInt}">
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
-            <CheckBox IsChecked="{Binding Value, Mode=TwoWay}"/>
+            <CheckBox IsChecked="{Binding Value, Mode=TwoWay}" />
         </DockPanel>
     </DataTemplate>
 
     <DataTemplate x:Key="EditableKeyValuePairTemplate" DataType="{x:Type editableConfigs:IEditableKeyValuePair}">
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="Key" Foreground="AliceBlue" />
-            <TextBox Text="{Binding Key, Mode=TwoWay}" MinWidth="50"/>
-            <TextBlock DockPanel.Dock="Left" Text="Value" Foreground="AliceBlue"/>
-            <TextBox Text="{Binding PairValue, Mode=TwoWay}" MinWidth="50"/>
+            <TextBox Text="{Binding Key, Mode=TwoWay}" MinWidth="50" />
+            <TextBlock DockPanel.Dock="Left" Text="Value" Foreground="AliceBlue" />
+            <TextBox Text="{Binding PairValue, Mode=TwoWay}" MinWidth="50" />
         </DockPanel>
     </DataTemplate>
 
@@ -64,7 +65,10 @@
         <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName, StringFormat=- {0}:}" Width="150"
                        Foreground="AliceBlue" />
-            <ComboBox SelectedItem="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding PredefinedValues}" />
+
+            <ComboBox ItemsSource="{Binding PredefinedValues}"
+                      SelectedItem="{Binding Value, Mode=TwoWay}"
+                      IsEnabled="{Binding IsBusy, Converter={x:Static local:InvertedBoolConverter.Instance}}" />
         </DockPanel>
     </DataTemplate>
     <DataTemplate x:Key="EditableEnumTemplate" DataType="{x:Type editableConfigs:IEditableEnum}">
@@ -102,8 +106,11 @@
             <DockPanel DockPanel.Dock="Top" LastChildFill="False">
                 <TextBlock Text="{Binding DisplayName}" DockPanel.Dock="Left" FontSize="15"
                            Foreground="AliceBlue" Opacity="0.5" />
-                <Button Content="+" Background="Transparent" BorderBrush="Transparent" Command="{Binding AddNewItemCommand}" Foreground="White" DockPanel.Dock="Right"/>
-                <ContentPresenter Content="{Binding ItemToAddEditable}" ContentTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}" DockPanel.Dock="Right"/>
+                <Button Content="+" Background="Transparent" BorderBrush="Transparent"
+                        Command="{Binding AddNewItemCommand}" Foreground="White" DockPanel.Dock="Right" />
+                <ContentPresenter Content="{Binding ItemToAddEditable}"
+                                  ContentTemplateSelector="{x:Static local:EditableConfigTemplateSelector.Instance}"
+                                  DockPanel.Dock="Right" />
             </DockPanel>
             <GroupBox BorderBrush="#55FFFFFF" Margin="5" Padding="5" BorderThickness="0.1">
                 <ItemsControl ItemsSource="{Binding SubEditables}"
@@ -136,6 +143,10 @@
             </GroupBox>
         </DockPanel>
 
+    </DataTemplate>
+
+    <DataTemplate x:Key="EditableSecureStringTemplate" DataType="{x:Type editableConfigs:EditableSecureString}">
+        <local:PasswordBoxForEditableView EditableSecureString="{Binding}"/>
     </DataTemplate>
 
 </ResourceDictionary>

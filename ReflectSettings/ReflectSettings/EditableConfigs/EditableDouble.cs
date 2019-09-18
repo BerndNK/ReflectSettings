@@ -28,7 +28,7 @@ namespace ReflectSettings.EditableConfigs
             if (Value is double currentValue && IsNumericValueAllowed(currentValue))
                 return currentValue;
 
-            var predefinedValues = GetPredefinedValues().ToList();
+            var predefinedValues = PredefinedValues;
             if (predefinedValues.Count == 0)
             {
                 var newValue = min;
@@ -40,7 +40,7 @@ namespace ReflectSettings.EditableConfigs
                 return newValue;
             }
 
-            return GetPredefinedValues().FirstOrDefault();
+            return PredefinedValues.OfType<double>().FirstOrDefault();
         }
 
         public EditableDouble(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)

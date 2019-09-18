@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows.Input;
 
 namespace ReflectSettings.EditableConfigs
 {
-    public interface IEditableCollection : IEditableConfig, IEnumerable
+    public interface IEditableCollection : IEditableConfig, IEnumerable, INotifyCollectionChanged
     {
         ObservableCollection<IEditableConfig> SubEditables { get; }
 
@@ -22,5 +23,10 @@ namespace ReflectSettings.EditableConfigs
         Type SubItemType { get; }
 
         int ItemCount { get; }
+
+        /// <summary>
+        /// Property to store the selected value
+        /// </summary>
+        object SelectedValue { get; set; }
     }
 }

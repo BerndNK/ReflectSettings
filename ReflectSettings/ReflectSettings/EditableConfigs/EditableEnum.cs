@@ -28,11 +28,11 @@ namespace ReflectSettings.EditableConfigs
                 return currentValue;
 
             // current value is not the enum type, try to use the first PredefinedValue or default
-            var allowedValues = GetPredefinedValues().ToList();
+            var allowedValues = PredefinedValues;
             if (allowedValues.Count == 0)
                 return PossibleEnumValues().FirstOrDefault(IsEnumValueAllowed);
             else
-                return allowedValues.FirstOrDefault();
+                return allowedValues.OfType<T>().FirstOrDefault();
         }
 
         private bool IsEnumValueAllowed(T value)

@@ -21,13 +21,13 @@ namespace ReflectSettings.EditableConfigs
             if (Value is KeyValuePair<TKey, TValue> currentValue && IsValueAllowed(currentValue))
                 return currentValue;
 
-            var predefinedValues = GetPredefinedValues().ToList();
+            var predefinedValues = PredefinedValues.ToList();
             if (predefinedValues.Count == 0)
             {
                 return new KeyValuePair<TKey, TValue>();
             }
 
-            return GetPredefinedValues().FirstOrDefault();
+            return PredefinedValues.OfType<KeyValuePair<TKey, TValue>>().FirstOrDefault();
         }
 
         private KeyValuePair<TKey, TValue> AsKeyValuePair => Value is KeyValuePair<TKey, TValue> asKeyValuePair

@@ -15,6 +15,9 @@ namespace FrontendDemo
 
             switch (item)
             {
+                case EditableSecureString editableSecureString:
+                    return element?.TryFindResource("EditableSecureStringTemplate") as DataTemplate;
+                    break;
                 case EditableString editableString:
                     if (editableString.HasPredefinedValues)
                         return element?.TryFindResource("EditableStringComboboxTemplate") as DataTemplate;

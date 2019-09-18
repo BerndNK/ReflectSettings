@@ -6,8 +6,11 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using ReflectSettings.Annotations;
 using ReflectSettings.Attributes;
+using ReflectSettings.EditableConfigs.InheritingAttribute;
 
 namespace ReflectSettings.EditableConfigs
 {
@@ -66,10 +69,11 @@ namespace ReflectSettings.EditableConfigs
         public ObservableCollection<object> PredefinedValues { get; } = new ObservableCollection<object>();
 
         public bool HasPredefinedValues => _attributes.OfType<PredefinedValuesAttribute>().Any() ||
-                                           AllCalculatedValuesAttribute.Any(x => x.Key == null) ||
+                                           CalculatedValues.ForThis.Any() ||
+                                           CalculatedValuesAsync.ForThis.Any() ||
                                            PropertyInfo.PropertyType.IsEnum;
 
-        public bool HasCalculatedType => AllCalculatedTypeAttributes.Any(x => x.Key == null);
+        public bool HasCalculatedType => CalculatedTypes.ForThis.Any();
 
         public ChangeTrackingManager ChangeTrackingManager
         {
@@ -94,11 +98,41 @@ namespace ReflectSettings.EditableConfigs
 
         public virtual void UpdateCalculatedValues()
         {
+            OnPropertyChanged(nameof(IsHidden));
             if (!HasPredefinedValues && !HasCalculatedType)
                 return;
 
+            if (CalculatedValuesAsync.ForThis.Any())
+            {
+                if (_currentlyRunningCalculatingValuesTask != null &&
+                    _currentlyRunningCalculatingValuesTask.Status != TaskStatus.RanToCompletion)
+                {
+                    _taskThatCameInWhileAnotherWasStillRunning = UpdateCalculatedValuesAsync;
+                    return;
+                }
+
+                var task = UpdateCalculatedValuesAsync();
+                lock (_currentRunningThreadMutex)
+                {
+                    if (_currentlyRunningCalculatingValuesTask != null)
+                    {
+                        _taskThatCameInWhileAnotherWasStillRunning = UpdateCalculatedValuesAsync;
+                    }
+                    else
+                    {
+                        if (task.Status != TaskStatus.RanToCompletion)
+                            _currentlyRunningCalculatingValuesTask = task;
+                    }
+                }
+
+                return;
+            }
+
             var existingValues = PredefinedValues.ToList();
-            var newValues = GetPredefinedValues().OfType<object>().ToList();
+            var newValuesOfT = GetPredefinedValues().ToList();
+            var newValues = newValuesOfT.OfType<object>().ToList();
+            if (newValuesOfT.Any(x => x == null))
+                newValues.Add(null);
 
             var toRemove = existingValues.Except(newValues);
             var toAdd = newValues.Except(existingValues);
@@ -123,7 +157,7 @@ namespace ReflectSettings.EditableConfigs
             }
 
             var valueTypeDiffersFromPredefined = Value?.GetType() != GetPredefinedType();
-            
+
 
             if (somethingChanged || (HasCalculatedType && valueTypeDiffersFromPredefined))
             {
@@ -131,41 +165,110 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
+        private Task _currentlyRunningCalculatingValuesTask = null;
+        private Mutex _currentRunningThreadMutex = new Mutex();
+        private Func<Task> _taskThatCameInWhileAnotherWasStillRunning = null;
+        private bool _loadingValuesAsync;
+
+        public async Task UpdateCalculatedValuesAsync()
+        {
+            IsBusy = true;
+
+            var existingValues = PredefinedValues.ToList();
+            var newValues = GetPredefinedValues().OfType<object>().ToList();
+
+            _loadingValuesAsync = true;
+            foreach (var asyncValues in CalculatedValuesAsync.ForThis)
+            {
+                var result = await asyncValues.ResolveValuesAsync(CalculatedValuesAsync.Inherited);
+                newValues = newValues.Concat(result).ToList();
+            }
+
+            _loadingValuesAsync = false;
+
+            var toRemove = existingValues.Except(newValues);
+            var toAdd = newValues.Except(existingValues);
+
+            var somethingChanged = false;
+            foreach (var value in toAdd)
+            {
+                PredefinedValues.Add(value);
+                somethingChanged = true;
+            }
+
+            if (somethingChanged)
+            {
+                Value = Value;
+                somethingChanged = false;
+            }
+
+            foreach (var value in toRemove)
+            {
+                PredefinedValues.Remove(value);
+                somethingChanged = true;
+            }
+
+            var valueTypeDiffersFromPredefined = Value?.GetType() != GetPredefinedType();
+
+
+            if (somethingChanged || (HasCalculatedType && valueTypeDiffersFromPredefined))
+            {
+                Value = Value;
+            }
+
+            if (_taskThatCameInWhileAnotherWasStillRunning != null)
+            {
+                
+                var taskMethod = _taskThatCameInWhileAnotherWasStillRunning;
+                _taskThatCameInWhileAnotherWasStillRunning = null;
+
+                await taskMethod();
+                Value = Value;
+            }
+
+            lock (_currentRunningThreadMutex)
+            {
+                _currentlyRunningCalculatingValuesTask = null;
+            }
+            
+            IsBusy = false;
+        }
+
+
         private void InitCalculatedAttributes()
         {
             foreach (var attribute in _attributes.OfType<INeedsInstance>())
             {
                 attribute.AttachedToInstance = ForInstance;
             }
+
+            CalculatedVisibility =
+                new InheritedAttributes<CalculatedVisibilityAttribute>(_attributes.OfType<CalculatedVisibilityAttribute>());
+            CalculatedValues =
+                new InheritedAttributes<CalculatedValuesAttribute>(_attributes.OfType<CalculatedValuesAttribute>());
+            CalculatedTypes =
+                new InheritedAttributes<CalculatedTypeAttribute>(_attributes.OfType<CalculatedTypeAttribute>());
+            CalculatedValuesAsync =
+                new InheritedAttributes<CalculatedValuesAsyncAttribute>(_attributes
+                    .OfType<CalculatedValuesAsyncAttribute>());
         }
 
-        public List<CalculatedTypeAttribute> InheritedCalculatedTypeAttribute { get; } =
-            new List<CalculatedTypeAttribute>();
+        public InheritedAttributes<CalculatedVisibilityAttribute> CalculatedVisibility { get; private set; }
 
-        protected IEnumerable<CalculatedTypeAttribute> AllCalculatedTypeAttributes =>
-            InheritedCalculatedTypeAttribute.Concat(Attributes<CalculatedTypeAttribute>());
+        public InheritedAttributes<CalculatedTypeAttribute> CalculatedTypes { get; private set; }
 
-        protected IEnumerable<CalculatedTypeAttribute> AllCalculatedTypeAttributeForChildren =>
-            AllCalculatedTypeAttributes.Where(x => x.Key != null || x.ForCollectionEntries);
+        public InheritedAttributes<CalculatedValuesAttribute> CalculatedValues { get; private set; }
 
+        public InheritedAttributes<CalculatedValuesAsyncAttribute> CalculatedValuesAsync { get; private set; }
 
-        public List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; } =
-            new List<CalculatedValuesAttribute>();
-
-        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttribute =>
-            InheritedCalculatedValuesAttribute.Concat(Attributes<CalculatedValuesAttribute>());
-
-        protected IEnumerable<CalculatedValuesAttribute> AllCalculatedValuesAttributeForChildren =>
-            AllCalculatedValuesAttribute.Where(x => x.Key != null || x.ForCollectionEntries);
-
-        protected IEnumerable<T> GetPredefinedValues()
+        private IEnumerable<T> GetPredefinedValues()
         {
             var staticValues = Attribute<PredefinedValuesAttribute>();
             // methods with a key are only used when the specific key is used as the resolution name of the attribute
-            var calculatedValuesAttributes = AllCalculatedValuesAttribute.Where(x => x.Key == null);
+            var calculatedValuesAttributes = CalculatedValues.ForThis;
 
             var calculatedValues =
-                calculatedValuesAttributes.SelectMany(x => x.CallMethod(InheritedCalculatedValuesAttribute));
+                calculatedValuesAttributes.SelectMany(x => x.ResolveValues(CalculatedValues.Inherited));
 
             var concat = staticValues.Values.Concat(calculatedValues).ToList();
             var toReturn = concat.OfType<T>().Except(ForbiddenValues()).ToList();
@@ -181,10 +284,10 @@ namespace ReflectSettings.EditableConfigs
         protected Type GetPredefinedType()
         {
             // methods with a key are only used when the specific key is used as the resolution name of the attribute
-            var calculatedTypeAttributes = AllCalculatedTypeAttributes.Where(x => x.Key == null);
+            var calculatedTypeAttributes = CalculatedTypes.ForThis;
 
             var calculatedTypes =
-                calculatedTypeAttributes.Select(x => x.CallMethod(InheritedCalculatedTypeAttribute, ForInstance));
+                calculatedTypeAttributes.Select(x => x.CallMethod(CalculatedTypes.Inherited, ForInstance));
 
             return calculatedTypes.FirstOrDefault(IsAssignableToT) ?? typeof(T);
         }
@@ -239,12 +342,16 @@ namespace ReflectSettings.EditableConfigs
 
         protected bool IsValueAllowed(T value)
         {
+            // while possible values are loaded, allow anything (so the set value doesn't get lost due to this method saying no
+            if (_loadingValuesAsync)
+                return true;
+
             if (value == null)
                 return false;
 
             var isTypeAllowed = GetPredefinedType().IsInstanceOfType(value);
 
-            var predefinedValues = GetPredefinedValues().ToList();
+            var predefinedValues = PredefinedValues;
             var isPredefinedValueOrNoPredefinedValuesGiven =
                 predefinedValues.Count == 0 || predefinedValues.Any(v => v.Equals(value));
 
@@ -257,6 +364,10 @@ namespace ReflectSettings.EditableConfigs
 
         protected bool IsNumericValueAllowed(dynamic numericValue)
         {
+            // while possible values are loaded, allow anything (so the set value doesn't get lost due to this method saying no
+            if (_loadingValuesAsync)
+                return true;
+
             var minMax = MinMax();
 
             if (!(numericValue is T asT))
@@ -306,6 +417,10 @@ namespace ReflectSettings.EditableConfigs
         public event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
 
         public string DisplayName => ResolveDisplayName();
+
+        public bool IsHidden => _attributes.OfType<IsHiddenAttribute>().Any() || CalculatedVisibility.ForThis.Any(x => x.IsHidden(CalculatedVisibility.Inherited));
+
+        public bool IsBusy { get; private set; }
 
         public object AdditionalData
         {

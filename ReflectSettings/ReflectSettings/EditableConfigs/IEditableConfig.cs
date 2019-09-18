@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using ReflectSettings.Attributes;
+using ReflectSettings.EditableConfigs.InheritingAttribute;
 using ReflectSettings.Utils;
 
 namespace ReflectSettings.EditableConfigs
@@ -20,9 +20,13 @@ namespace ReflectSettings.EditableConfigs
 
         ChangeTrackingManager ChangeTrackingManager { get; set; }
 
-        List<CalculatedValuesAttribute> InheritedCalculatedValuesAttribute { get; }
+        InheritedAttributes<CalculatedVisibilityAttribute> CalculatedVisibility { get; }
 
-        List<CalculatedTypeAttribute> InheritedCalculatedTypeAttribute { get; }
+        InheritedAttributes<CalculatedTypeAttribute> CalculatedTypes { get; }
+
+        InheritedAttributes<CalculatedValuesAttribute> CalculatedValues { get; }
+
+        InheritedAttributes<CalculatedValuesAsyncAttribute> CalculatedValuesAsync { get; }
 
         bool IsDisplayNameProperty { get; }
 
@@ -38,5 +42,9 @@ namespace ReflectSettings.EditableConfigs
         object AdditionalData { get; set; }
 
         bool HasCalculatedType { get; }
+
+        bool IsHidden { get; }
+
+        bool IsBusy { get; }
     }
 }

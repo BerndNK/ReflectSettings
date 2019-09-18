@@ -26,6 +26,11 @@ namespace ReflectSettings
                         config.PropertyChanged += OnConfigValueChanged;
                     }
 
+                    foreach (var config in e.NewItems.OfType<IEditableCollection>())
+                    {
+                        config.CollectionChanged += InvokeCollectionChanged;
+                    }
+
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     foreach (var config in e.OldItems.OfType<IEditableConfig>())
@@ -33,8 +38,18 @@ namespace ReflectSettings
                         config.PropertyChanged -= OnConfigValueChanged;
                     }
 
+                    foreach (var config in e.OldItems.OfType<IEditableCollection>())
+                    {
+                        config.CollectionChanged -= InvokeCollectionChanged;
+                    }
+
                     break;
             }
+        }
+
+        private void InvokeCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            ConfigurationChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private bool _suppressEvents = false;

@@ -23,13 +23,13 @@ namespace ReflectSettings.EditableConfigs
             if (Value is bool currentValue && IsValueAllowed(currentValue))
                 return currentValue;
 
-            var predefinedValues = GetPredefinedValues().ToList();
+            var predefinedValues = PredefinedValues.ToList();
             if (predefinedValues.Count == 0)
             {
                 return !IsValueAllowed(false);
             }
 
-            return GetPredefinedValues().FirstOrDefault();
+            return PredefinedValues.OfType<bool>().FirstOrDefault();
         }
 
         private bool TryCastBool(object value, out bool result)
