@@ -25,8 +25,9 @@ namespace FrontendDemo
             _complexConfiguration = new ComplexConfiguration();
             if (File.Exists(JsonFilePath))
                 _complexConfiguration = JsonConvert.DeserializeObject<ComplexConfiguration>(File.ReadAllText(JsonFilePath));
-
-            var editableConfigs = fac.Reflect(_complexConfiguration, out var changeTrackingManager);
+            
+            var changeTrackingManager = new ChangeTrackingManager();
+            var editableConfigs = fac.Reflect(_complexConfiguration, changeTrackingManager);
 
             foreach (var config in editableConfigs)
             {

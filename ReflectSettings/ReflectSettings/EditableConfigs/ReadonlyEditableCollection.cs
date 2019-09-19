@@ -8,7 +8,7 @@ namespace ReflectSettings.EditableConfigs
     public class ReadonlyEditableCollection<TItem, TCollection> : EditableConfigBase<TCollection>, IReadOnlyEditableCollection,
         IReadOnlyCollection<TItem> where TCollection : class, IReadOnlyCollection<TItem>
     {
-        public ReadonlyEditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
+        public ReadonlyEditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(forInstance, propertyInfo, factory, changeTrackingManager)
         {
             Value = Value;
         }

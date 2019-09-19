@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +12,7 @@ namespace ReflectSettings
 {
     public class SettingsFactory
     {
-        private class InstanceWrapper<T>
+        private class InstanceWrapper<T> 
         {
             public InstanceWrapper(T value)
             {
@@ -25,21 +26,23 @@ namespace ReflectSettings
         /// Creates IEditableConfig for each public get and set-able property of the given instance.
         /// Optionally gives a IEditableConfig for the given instance itself, instead of its properties.
         /// </summary>
-        public IEnumerable<IEditableConfig> Reflect(object configurable, out ChangeTrackingManager changeTrackingManager, bool useConfigurableItself = false)
+        public IEnumerable<IEditableConfig> Reflect(object configurable, ChangeTrackingManager changeTrackingManager, bool useConfigurableItself = false)
         {
-            changeTrackingManager = new ChangeTrackingManager();
-            if (useConfigurableItself)
+            using (changeTrackingManager.SuppressEvents(true))
             {
-                var wrapperType = typeof(InstanceWrapper<>).MakeGenericType(configurable.GetType());
-                var wrapper = Activator.CreateInstance(wrapperType, configurable);
-                return new List<IEditableConfig>
-                    {EditableConfigFromPropertyInfo(wrapper, wrapper.GetType().GetProperty(nameof(InstanceWrapper<int>.Value)), changeTrackingManager)};
-            }
-            else
-            {
-                var editableProperties = EditableProperties(configurable.GetType());
-                var trackingManager = changeTrackingManager;
-                return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t, trackingManager));
+                if (useConfigurableItself)
+                {
+                    var wrapperType = typeof(InstanceWrapper<>).MakeGenericType(configurable.GetType());
+                    var wrapper = Activator.CreateInstance(wrapperType, configurable);
+                    return new List<IEditableConfig>
+                        {EditableConfigFromPropertyInfo(wrapper, wrapper.GetType().GetProperty(nameof(InstanceWrapper<int>.Value)), changeTrackingManager)};
+                }
+                else
+                {
+                    var editableProperties = EditableProperties(configurable.GetType());
+                    var trackingManager = changeTrackingManager;
+                    return editableProperties.Select(t => EditableConfigFromPropertyInfo(configurable, t, trackingManager));
+                }
             }
         }
 
@@ -62,7 +65,7 @@ namespace ReflectSettings
                 if (IsComplex(propertyInfo) && HasCyclicTypes(propertyInfo, new[] {configurable.GetType()}))
                     throw new Exception("Cyclic type dependency detected. This is currently not supported.");
 
-                instance = Activator.CreateInstance(editableType, configurable, propertyInfo, this);
+                instance = Activator.CreateInstance(editableType, configurable, propertyInfo, this, changeTrackingManager);
             }
             catch (Exception e)
             {
@@ -71,12 +74,14 @@ namespace ReflectSettings
 
             if (instance is IEditableConfig editableConfig)
             {
-                editableConfig.ChangeTrackingManager = changeTrackingManager;
+                if (configurable is INotifyPropertyChanged asNotifyPropertyChanged)
+                    changeTrackingManager.RegisterPropertyChangedListener(asNotifyPropertyChanged, editableConfig);
+
                 return editableConfig;
             }
 
             Debug.Fail($"Failed to cast type {editableType} to {typeof(IEditableConfig)}.");
-            return new EditableDummy(configurable, propertyInfo, this);
+            return new EditableDummy(configurable, propertyInfo, this, changeTrackingManager);
         }
 
         private bool HasCyclicTypes(PropertyInfo propertyInfo, IList<Type> previousTypes)
@@ -104,19 +109,19 @@ namespace ReflectSettings
             {
                 if (propertyInfo.PropertyType.IsEnum)
                     editableType = typeof(EditableEnum<>).MakeGenericType(propertyInfo.PropertyType);
-                else if (ImplementsType(propertyInfo, typeof(KeyValuePair<,>),out var keyValuePairType))
+                else if (ImplementsType(propertyInfo, typeof(KeyValuePair<,>), out var keyValuePairType))
                 {
                     var subItemTypes = keyValuePairType.GenericTypeArguments;
-                    
+
                     editableType = typeof(EditableKeyValuePair<,>).MakeGenericType(subItemTypes);
                 }
-                else if (ImplementsType(propertyInfo, typeof(ICollection<>),out var iCollectionType))
+                else if (ImplementsType(propertyInfo, typeof(ICollection<>), out var iCollectionType))
                 {
                     var subItemType = iCollectionType.GenericTypeArguments.First();
 
                     editableType = typeof(EditableCollection<,>).MakeGenericType(subItemType, propertyInfo.PropertyType);
                 }
-                else if (ImplementsType(propertyInfo, typeof(IReadOnlyCollection<>),out var iReadOnlyCollectionType))
+                else if (ImplementsType(propertyInfo, typeof(IReadOnlyCollection<>), out var iReadOnlyCollectionType))
                 {
                     var subItemType = iReadOnlyCollectionType.GenericTypeArguments.First();
 
@@ -136,15 +141,15 @@ namespace ReflectSettings
                 return propertyInfo.PropertyType.IsAssignableFrom(genericTypeToCheck);
 
             var isImplementationItself = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == genericTypeToCheck;
-            var inheritedInterfaceType = 
+            var inheritedInterfaceType =
                 propertyInfo.PropertyType.GetInterfaces()
-                .FirstOrDefault(x =>
-                    x.IsGenericType &&
-                    x.GetGenericTypeDefinition() == genericTypeToCheck);
+                    .FirstOrDefault(x =>
+                        x.IsGenericType &&
+                        x.GetGenericTypeDefinition() == genericTypeToCheck);
 
             // the given interface may be an generic definition like ICollection<>.
             // So in order to actually get the type of T (in ICollection<T>), the actual implemented type is provided as an out variable
-            specificImplementationOfGeneric = 
+            specificImplementationOfGeneric =
                 isImplementationItself
                     ? propertyInfo.PropertyType
                     : inheritedInterfaceType;
@@ -175,4 +180,6 @@ namespace ReflectSettings
             return ignoredAttribute == null;
         }
     }
+
+    
 }

@@ -5,8 +5,8 @@ namespace ReflectSettings.EditableConfigs
 {
     public class EditableBool : EditableConfigBase<bool>
     {
-        public EditableBool(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance,
-            propertyInfo, factory)
+        public EditableBool(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(forInstance,
+            propertyInfo, factory, changeTrackingManager)
         {
             Value = Value;
         }

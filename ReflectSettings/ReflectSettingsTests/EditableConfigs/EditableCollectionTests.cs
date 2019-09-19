@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using ReflectSettings;
@@ -23,6 +25,37 @@ namespace ReflectSettingsTests.EditableConfigs
         {
             [UsedImplicitly]
             public ObservableCollection<string> StringList { get; set; }
+        }
+        
+        [UsedImplicitly]
+        private class ClassWithPropertyChangedChildren
+        {
+            [UsedImplicitly]
+            public ObservableCollection<ClassWithPropertyChanging> StringList { get; set; }
+        }
+
+        [UsedImplicitly]
+        private class ClassWithPropertyChanging : INotifyPropertyChanged
+        {
+            private string _someString;
+
+            public string SomeString
+            {
+                get => _someString;
+                set
+                {
+                    _someString = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            [NotifyPropertyChangedInvocator]
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         [UsedImplicitly]
@@ -150,7 +183,8 @@ namespace ReflectSettingsTests.EditableConfigs
         {
             var instance = new ClassWithObservableCollectionProperty {StringList = new ObservableCollection<string> {"OldValue"}};
             var factory = new SettingsFactory();
-            var editables = factory.Reflect(instance, out var changeTrackingManager).ToList();
+            var changeTrackingManager = new ChangeTrackingManager();
+            var editables = factory.Reflect(instance, changeTrackingManager).ToList();
 
             var editableList = editables.OfType<IEditableCollection>().First();
             editableList.AddNewItemCommand.Execute(null);
@@ -160,6 +194,29 @@ namespace ReflectSettingsTests.EditableConfigs
             stringEditable.Value = newValue;
 
             Assert.That(instance.StringList.First(), Is.EqualTo(newValue));
-        }
+       }
+        
+        [Test]
+        public void ItemsWithinAListRaisePropertyChangedWhenChangingValueExternally()
+        {
+            var instance = new ClassWithPropertyChangedChildren {StringList = new ObservableCollection<ClassWithPropertyChanging> { new ClassWithPropertyChanging()}};
+            var factory = new SettingsFactory();
+            var changeTrackingManager = new ChangeTrackingManager();
+            var editables = factory.Reflect(instance, changeTrackingManager).ToList();
+
+            var editableList = editables.OfType<IEditableCollection>().First();
+            var enumerable = editableList.GetEnumerator();
+            enumerable.MoveNext();
+            var firstEntry = (ClassWithPropertyChanging) enumerable.Current;
+            
+            var propertyChangedRaised = false;
+            firstEntry.PropertyChanged += (sender, args) => propertyChangedRaised = true;
+
+
+            firstEntry.SomeString = "asd";
+
+
+            Assert.That(propertyChangedRaised, Is.True);
+       }
     }
 }

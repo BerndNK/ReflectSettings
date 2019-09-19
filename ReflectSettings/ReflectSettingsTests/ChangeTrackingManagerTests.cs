@@ -27,7 +27,8 @@ namespace ReflectSettingsTests
         {
             var instance = (ClassWithComplexProperty) Activator.CreateInstance(typeof(ClassWithComplexProperty));
             var factory = new SettingsFactory();
-            var result = factory.Reflect(instance, out var changeTrackingManager).ToList();
+            var changeTrackingManager = new ChangeTrackingManager();
+            var result = factory.Reflect(instance, changeTrackingManager).ToList();
             var configChangedCalled = 0;
             changeTrackingManager.ConfigurationChanged += (sender, args) => configChangedCalled += 1;
 

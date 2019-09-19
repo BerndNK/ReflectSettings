@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using ReflectSettings.EditableConfigs;
 
 namespace ReflectSettings
@@ -12,6 +14,7 @@ namespace ReflectSettings
         public ChangeTrackingManager()
         {
             CollectionChanged += OnCollectionChanged;
+            _registeredInstancesWithEditables = new Dictionary<INotifyPropertyChanged, Dictionary<PropertyInfo, IEditableConfig>>();
         }
 
         public event EventHandler ConfigurationChanged;
@@ -52,7 +55,42 @@ namespace ReflectSettings
             ConfigurationChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private bool _suppressEvents = false;
+        private bool _suppressEvents;
+
+        public IDisposable SuppressEvents(bool callConfigurationChangedWhenDisposed = false)
+        {
+            return new EventSuppressor(this, callConfigurationChangedWhenDisposed);
+        }
+
+        private class EventSuppressor : IDisposable
+        {
+            private readonly ChangeTrackingManager _manager;
+
+            private readonly bool _callConfigurationChangedWhenDisposed;
+
+            private readonly bool _didSuppress;
+
+            public EventSuppressor(ChangeTrackingManager manager, bool callConfigurationChangedWhenDisposed)
+            {
+                _manager = manager;
+                _callConfigurationChangedWhenDisposed = callConfigurationChangedWhenDisposed;
+                if (!manager._suppressEvents)
+                {
+                    _didSuppress = true;
+                    _manager._suppressEvents = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_didSuppress)
+                {
+                    _manager._suppressEvents = false;
+                    if (_callConfigurationChangedWhenDisposed)
+                        _manager.OnConfigValueChanged(this, new PropertyChangedEventArgs(nameof(IEditableConfig.Value)));
+                }
+            }
+        }
 
         private void OnConfigValueChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -69,6 +107,44 @@ namespace ReflectSettings
 
             _suppressEvents = false;
             ConfigurationChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private readonly Dictionary<INotifyPropertyChanged, Dictionary<PropertyInfo, IEditableConfig>> _registeredInstancesWithEditables;
+
+        public void RegisterPropertyChangedListener(INotifyPropertyChanged configurable, IEditableConfig editableConfig)
+        {
+            CreateEntryForInstance(configurable);
+
+            var propertyDictionary = _registeredInstancesWithEditables[configurable];
+            AddToPropertyDictionary(propertyDictionary, editableConfig);
+            SetUpEventListener(configurable, editableConfig);
+        }
+
+        private void SetUpEventListener(INotifyPropertyChanged configurable, IEditableConfig editableConfig)
+        {
+            configurable.PropertyChanged += (sender, args) =>
+            {
+                if (_suppressEvents || args.PropertyName != editableConfig.PropertyInfo.Name)
+                    return;
+
+                editableConfig.ValueWasExternallyChanged();
+            };
+        }
+
+        private void AddToPropertyDictionary(Dictionary<PropertyInfo, IEditableConfig> propertyDictionary, IEditableConfig editableConfig)
+        {
+            if (propertyDictionary.ContainsKey(editableConfig.PropertyInfo))
+                return;
+
+            propertyDictionary.Add(editableConfig.PropertyInfo, editableConfig);
+        }
+
+        private void CreateEntryForInstance(INotifyPropertyChanged instance)
+        {
+            if (_registeredInstancesWithEditables.ContainsKey(instance))
+                return;
+
+            _registeredInstancesWithEditables.Add(instance, new Dictionary<PropertyInfo, IEditableConfig>());
         }
     }
 }

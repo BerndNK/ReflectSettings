@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.9.2</Version>
+    <Version>1.0.10.0</Version>
     <Authors>BerndNK</Authors>
     <Company>BerndNK</Company>
     <Description>Quickly creates model classes for a settings UI. With attributes to modify behavior.</Description>

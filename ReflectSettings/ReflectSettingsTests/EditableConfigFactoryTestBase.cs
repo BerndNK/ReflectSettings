@@ -18,7 +18,9 @@ namespace ReflectSettingsTests
             instance = (T) Activator.CreateInstance(typeof(T));
             var factory = new SettingsFactory();
 
-            return factory.Reflect(instance, out var changeTrackingManager, useConfigurableItself).ToList();
+            
+            var changeTrackingManager = new ChangeTrackingManager();
+            return factory.Reflect(instance, changeTrackingManager, useConfigurableItself).ToList();
         }
     }
 }
