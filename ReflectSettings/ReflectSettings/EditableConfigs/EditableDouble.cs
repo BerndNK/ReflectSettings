@@ -43,7 +43,7 @@ namespace ReflectSettings.EditableConfigs
             return PredefinedValues.OfType<double>().FirstOrDefault();
         }
 
-        public EditableDouble(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
+        public EditableDouble(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(forInstance, propertyInfo, factory, changeTrackingManager)
         {
             // parse the existing value on the instance
             Value = Value;

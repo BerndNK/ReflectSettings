@@ -15,8 +15,8 @@ namespace ReflectSettings.EditableConfigs
         private IEditableConfig _itemToAddEditable;
         private object _additionalData;
 
-        public EditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
-            forInstance, propertyInfo, factory)
+        public EditableCollection(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(
+            forInstance, propertyInfo, factory, changeTrackingManager)
         {
             Value = Value;
             AddNewItemCommand = new DelegateCommand(AddNewItem);
@@ -126,10 +126,14 @@ namespace ReflectSettings.EditableConfigs
         private void CreateSubEditables(TCollection collection)
         {
             ClearSubEditables();
-            foreach (var editableConfig in collection.Select(EditableConfigFor))
+            foreach (var editable in collection.Select(EditableConfigFor))
             {
-                editableConfig.AdditionalData = AdditionalData;
-                SubEditables.Add(editableConfig);
+                editable.AdditionalData = AdditionalData;
+
+                if (typeof(TItem).IsPrimitive || typeof(TItem) == typeof(string) || editable is IEditableKeyValuePair)
+                    editable.ValueChanged += OnPrimitiveChildValueChanged;
+
+                SubEditables.Add(editable);
             }
         }
 
@@ -224,8 +228,7 @@ namespace ReflectSettings.EditableConfigs
 
         private IEditableConfig EditableConfigFor(TItem item)
         {
-            var config = Factory.Reflect(item, out _, true).First();
-            config.ChangeTrackingManager = ChangeTrackingManager;
+            var config = Factory.Reflect(item, ChangeTrackingManager, true).First();
             config.CalculatedValues.InheritFrom(CalculatedValues);
             config.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
             config.CalculatedVisibility.InheritFrom(CalculatedVisibility);
@@ -245,7 +248,6 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
                 editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
 
-                editable.UpdateCalculatedValues();
             }
 
             if (ItemToAddEditable == null)
@@ -256,21 +258,6 @@ namespace ReflectSettings.EditableConfigs
             ItemToAddEditable.CalculatedTypes.InheritFrom(CalculatedTypes);
             ItemToAddEditable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
 
-            ItemToAddEditable.UpdateCalculatedValues();
-        }
-
-        protected override void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
-        {
-            base.SetChangeTrackingManagerForChildren(value);
-            foreach (var editable in SubEditables)
-            {
-                editable.ChangeTrackingManager = value;
-            }
-
-            if (ItemToAddEditable == null)
-                return;
-
-            ItemToAddEditable.ChangeTrackingManager = value;
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;

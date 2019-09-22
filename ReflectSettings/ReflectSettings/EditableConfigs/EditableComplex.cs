@@ -60,14 +60,13 @@ namespace ReflectSettings.EditableConfigs
             SubEditables.Clear();
             if (fromInstance != null)
             {
-                var subEditables = Factory.Reflect(fromInstance, out _).ToList();
+                var subEditables = Factory.Reflect(fromInstance, ChangeTrackingManager).ToList();
                 foreach (var item in subEditables)
                 {
                     item.CalculatedValues.InheritFrom(CalculatedValues);
                     item.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                     item.CalculatedTypes.InheritFrom(CalculatedTypes);
                     item.CalculatedVisibility.InheritFrom(CalculatedVisibility);
-                    item.ChangeTrackingManager = ChangeTrackingManager;
                     if (item.IsDisplayNameProperty)
                         item.PropertyChanged += OnDisplayNameEditablePropertyChanged;
                     item.UpdateCalculatedValues();
@@ -99,8 +98,8 @@ namespace ReflectSettings.EditableConfigs
             return base.ResolveDisplayName();
         }
 
-        public EditableComplex(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
-            forInstance, propertyInfo, factory)
+        public EditableComplex(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(
+            forInstance, propertyInfo, factory, changeTrackingManager)
         {
             if (propertyInfo.PropertyType != typeof(T))
                 throw new ArgumentException(
@@ -120,17 +119,6 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
                 editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
-
-                editable.UpdateCalculatedValues();
-            }
-        }
-
-        protected override void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
-        {
-            base.SetChangeTrackingManagerForChildren(value);
-            foreach (var editable in SubEditables)
-            {
-                editable.ChangeTrackingManager = value;
             }
         }
     }

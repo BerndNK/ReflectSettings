@@ -13,7 +13,7 @@ namespace ReflectSettings.EditableConfigs
             return new SecureString();
         }
 
-        public EditableSecureString(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance, propertyInfo, factory)
+        public EditableSecureString(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(forInstance, propertyInfo, factory, changeTrackingManager)
         {
         }
     }

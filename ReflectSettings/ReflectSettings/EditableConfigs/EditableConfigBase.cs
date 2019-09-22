@@ -26,6 +26,8 @@ namespace ReflectSettings.EditableConfigs
 
         public PropertyInfo PropertyInfo { get; set; }
 
+        private object _lastSetValue;
+
         public object Value
         {
             get => GetValue();
@@ -35,9 +37,30 @@ namespace ReflectSettings.EditableConfigs
                 if (Equals(newValue, Value))
                     return;
                 var oldValue = Value;
+                _lastSetValue = newValue;
                 SetValue(newValue);
                 ValueChanged?.Invoke(this, new EditableConfigValueChangedEventArgs(oldValue, Value));
                 OnPropertyChanged();
+            }
+        }
+
+        public void ValueWasExternallyChanged()
+        {
+            // check whether the value did in fact externally change.
+            if (Value == _lastSetValue)
+                return;
+
+            // check whether current value is legal. Or in other words, the value would change when parsed again
+            var parsed = ParseValue(Value);
+            if (!Equals(parsed, Value))
+            {
+                Value = Value;
+            }
+            else
+            {
+                _lastSetValue = Value;
+                ValueChanged?.Invoke(this, new EditableConfigValueChangedEventArgs(_lastSetValue, Value));
+                OnPropertyChanged(nameof(Value));
             }
         }
 
@@ -47,15 +70,18 @@ namespace ReflectSettings.EditableConfigs
 
         private void SetValue(T value) => PropertyInfo.SetValue(ForInstance, value);
 
-        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory)
+        protected EditableConfigBase(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager)
         {
             ForInstance = forInstance;
             PropertyInfo = propertyInfo;
             Factory = factory;
+            ChangeTrackingManager = changeTrackingManager;
 
             _attributes = propertyInfo.GetCustomAttributes(true).OfType<Attribute>().ToList();
             InitCalculatedAttributes();
             UpdateCalculatedValues();
+
+            PredefinedValues.CollectionChanged += (sender, args) => OnPropertyChanged(nameof(PredefinedValues));
         }
 
         private TAttribute Attribute<TAttribute>() where TAttribute : Attribute =>
@@ -78,20 +104,14 @@ namespace ReflectSettings.EditableConfigs
         public ChangeTrackingManager ChangeTrackingManager
         {
             get => _changeTrackingManager;
-            set
+            private set
             {
                 _changeTrackingManager?.Remove(this);
 
                 _changeTrackingManager = value;
 
                 _changeTrackingManager?.Add(this);
-
-                SetChangeTrackingManagerForChildren(value);
             }
-        }
-
-        protected virtual void SetChangeTrackingManagerForChildren(ChangeTrackingManager value)
-        {
         }
 
         public bool IsDisplayNameProperty => _attributes.OfType<IsDisplayName>().FirstOrDefault() != null;
@@ -218,7 +238,6 @@ namespace ReflectSettings.EditableConfigs
 
             if (_taskThatCameInWhileAnotherWasStillRunning != null)
             {
-                
                 var taskMethod = _taskThatCameInWhileAnotherWasStillRunning;
                 _taskThatCameInWhileAnotherWasStillRunning = null;
 
@@ -230,7 +249,7 @@ namespace ReflectSettings.EditableConfigs
             {
                 _currentlyRunningCalculatingValuesTask = null;
             }
-            
+
             IsBusy = false;
         }
 
@@ -353,10 +372,10 @@ namespace ReflectSettings.EditableConfigs
 
             var predefinedValues = PredefinedValues;
             var isPredefinedValueOrNoPredefinedValuesGiven =
-                predefinedValues.Count == 0 || predefinedValues.Any(v => v.Equals(value));
+                predefinedValues.Count == 0 || predefinedValues.Any(v => Equals(v, value));
 
             var isValueAllowed = isPredefinedValueOrNoPredefinedValuesGiven && isTypeAllowed;
-            var isValueForbidden = ForbiddenValues().Any(v => v.Equals(value));
+            var isValueForbidden = ForbiddenValues().Any(v => Equals(v, value));
 
 
             return isValueAllowed && !isValueForbidden;

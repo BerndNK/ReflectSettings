@@ -7,8 +7,8 @@ namespace ReflectSettings.EditableConfigs
     public class EditableKeyValuePair<TKey, TValue> : EditableConfigBase<KeyValuePair<TKey, TValue>>,
         IEditableKeyValuePair
     {
-        public EditableKeyValuePair(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(
-            forInstance, propertyInfo, factory)
+        public EditableKeyValuePair(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(
+            forInstance, propertyInfo, factory, changeTrackingManager)
         {
         }
 

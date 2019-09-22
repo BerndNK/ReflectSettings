@@ -18,7 +18,7 @@ namespace ReflectSettings.EditableConfigs
 
         bool HasPredefinedValues { get; }
 
-        ChangeTrackingManager ChangeTrackingManager { get; set; }
+        ChangeTrackingManager ChangeTrackingManager { get; }
 
         InheritedAttributes<CalculatedVisibilityAttribute> CalculatedVisibility { get; }
 
@@ -46,5 +46,7 @@ namespace ReflectSettings.EditableConfigs
         bool IsHidden { get; }
 
         bool IsBusy { get; }
+
+        void ValueWasExternallyChanged();
     }
 }

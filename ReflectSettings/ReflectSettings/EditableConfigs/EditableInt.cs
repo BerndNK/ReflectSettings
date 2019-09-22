@@ -52,8 +52,8 @@ namespace ReflectSettings.EditableConfigs
             return predefinedValues.OfType<int>().FirstOrDefault();
         }
 
-        public EditableInt(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory) : base(forInstance,
-            propertyInfo, factory)
+        public EditableInt(object forInstance, PropertyInfo propertyInfo, SettingsFactory factory, ChangeTrackingManager changeTrackingManager) : base(forInstance,
+            propertyInfo, factory, changeTrackingManager)
         {
             // parse the existing value on the instance
             Value = Value;
