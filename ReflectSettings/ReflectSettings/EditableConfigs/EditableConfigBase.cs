@@ -420,7 +420,17 @@ namespace ReflectSettings.EditableConfigs
 
         public bool IsHidden => _attributes.OfType<IsHiddenAttribute>().Any() || CalculatedVisibility.ForThis.Any(x => x.IsHidden(CalculatedVisibility.Inherited));
 
-        public bool IsBusy { get; private set; }
+        private bool _isBusy;
+
+        public bool IsBusy
+        {
+            get => _isBusy;
+            private set
+            {
+                _isBusy = value;
+                OnPropertyChanged();
+            }
+        }
 
         public object AdditionalData
         {
