@@ -33,6 +33,7 @@ namespace ReflectSettings.EditableConfigs
             {
                 if (value is TItem asItem)
                     SelectedItem = asItem;
+                OnPropertyChanged();
             }
         }
 

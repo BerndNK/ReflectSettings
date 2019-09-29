@@ -94,7 +94,7 @@ namespace ReflectSettings
 
         private void OnConfigValueChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(IEditableConfig.Value))
+            if (e.PropertyName != nameof(IEditableConfig.Value) && e.PropertyName != nameof(IEditableCollection.SelectedValue))
                 return;
             if (_suppressEvents)
                 return;
