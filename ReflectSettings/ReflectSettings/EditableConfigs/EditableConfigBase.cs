@@ -64,6 +64,8 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
+        public string HashCode => GetHashCode().ToString();
+
         protected abstract T ParseValue(object value);
 
         private T GetValue() => (T) PropertyInfo.GetValue(ForInstance);
@@ -121,6 +123,8 @@ namespace ReflectSettings.EditableConfigs
             OnPropertyChanged(nameof(IsHidden));
             if (!HasPredefinedValues && !HasCalculatedType)
                 return;
+
+            UpdatePredefinedType();
 
             if (CalculatedValuesAsync.ForThis.Any())
             {
@@ -302,13 +306,23 @@ namespace ReflectSettings.EditableConfigs
 
         protected Type GetPredefinedType()
         {
+            if (_predefinedType == null)
+                UpdatePredefinedType();
+
+            return _predefinedType;
+        }
+
+        private Type _predefinedType;
+
+        private void UpdatePredefinedType()
+        {
             // methods with a key are only used when the specific key is used as the resolution name of the attribute
             var calculatedTypeAttributes = CalculatedTypes.ForThis;
 
             var calculatedTypes =
                 calculatedTypeAttributes.Select(x => x.CallMethod(CalculatedTypes.Inherited, ForInstance));
 
-            return calculatedTypes.FirstOrDefault(IsAssignableToT) ?? typeof(T);
+            _predefinedType = calculatedTypes.FirstOrDefault(IsAssignableToT) ?? typeof(T);
         }
 
         private bool IsAssignableToT(Type type) => typeof(T).IsAssignableFrom(type) && type != typeof(object);

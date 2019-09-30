@@ -48,5 +48,8 @@ namespace ReflectSettings.EditableConfigs
         bool IsBusy { get; }
 
         void ValueWasExternallyChanged();
+
+        string HashCode { get; }
+        object ForInstance { get; set; }
     }
 }

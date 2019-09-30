@@ -190,6 +190,7 @@ namespace ReflectSettings.EditableConfigs
             foreach (var editable in SubEditables)
             {
                 editable.ValueChanged -= OnPrimitiveChildValueChanged;
+                ChangeTrackingManager.Remove(editable);
             }
 
             SubEditables.Clear();

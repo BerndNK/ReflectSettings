@@ -57,7 +57,7 @@ namespace ReflectSettings.EditableConfigs
 
         protected virtual void CreateSubEditables(T fromInstance)
         {
-            SubEditables.Clear();
+            ClearSubEditables();
             if (fromInstance != null)
             {
                 var subEditables = Factory.Reflect(fromInstance, ChangeTrackingManager).ToList();
@@ -74,6 +74,16 @@ namespace ReflectSettings.EditableConfigs
                     SubEditables.Add(item);
                 }
             }
+        }
+
+        private void ClearSubEditables()
+        {
+            foreach (var editable in SubEditables)
+            {
+                ChangeTrackingManager.Remove(editable);
+            }
+
+            SubEditables.Clear();
         }
 
         private void OnDisplayNameEditablePropertyChanged(object sender, PropertyChangedEventArgs e)

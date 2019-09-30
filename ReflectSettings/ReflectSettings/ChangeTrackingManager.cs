@@ -39,6 +39,7 @@ namespace ReflectSettings
                     foreach (var config in e.OldItems.OfType<IEditableConfig>())
                     {
                         config.PropertyChanged -= OnConfigValueChanged;
+                        RemoveFromRegisteredInstances(config);
                     }
 
                     foreach (var config in e.OldItems.OfType<IEditableCollection>())
@@ -47,6 +48,24 @@ namespace ReflectSettings
                     }
 
                     break;
+            }
+        }
+
+        private void RemoveFromRegisteredInstances(IEditableConfig config)
+        {
+            var dictionaryEntriesWhichContainConfig =_registeredInstancesWithEditables.Where(x => x.Value.ContainsValue(config)).ToList();
+
+            foreach (var keyValuePair in dictionaryEntriesWhichContainConfig)
+            {
+                var dictionary = keyValuePair.Value;
+                var tuplesToRemove = dictionary.Where(x => x.Value == config).ToList();
+                foreach (var tuple in tuplesToRemove)
+                {
+                    dictionary.Remove(tuple.Key);
+                }
+
+                if (dictionary.Count == 0)
+                    _registeredInstancesWithEditables.Remove(keyValuePair.Key);
             }
         }
 
