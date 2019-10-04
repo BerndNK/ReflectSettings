@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using ReflectSettings;
 using ReflectSettings.Attributes;
 using ReflectSettings.EditableConfigs;
 
@@ -50,7 +52,7 @@ namespace ReflectSettingsTests.Attributes
                     return typeof(string);
             }
         }
-        
+
         [UsedImplicitly]
         private class ClassWithSpecifiedTypeFromParent
         {
@@ -95,14 +97,12 @@ namespace ReflectSettingsTests.Attributes
 
         private interface ISomething
         {
-
         }
 
         private class Something : ISomething
         {
-
         }
-        
+
         [UsedImplicitly]
         private class ClassWithWrongSpecifiedType
         {
@@ -114,7 +114,7 @@ namespace ReflectSettingsTests.Attributes
             {
                 return typeof(string);
             }
-            
+
             public Type CalculateTypes2(ClassWithWrongSpecifiedType instance)
             {
                 return typeof(Something);
@@ -162,6 +162,26 @@ namespace ReflectSettingsTests.Attributes
             boolEditable.Value = true;
 
             Assert.That(instance.CanBeAnything, Is.TypeOf(typeof(ComplexSubClass)));
+        }
+
+        [Test]
+        public void MultipleEditablesOfSameTypeUpdateTheirSubEditables()
+        {
+            var result = Produce<ClassWithVariableSpecifiedType>(out var instance).ToList();
+
+            var factory = new SettingsFactory();
+            var doubleReflected = factory.Reflect(instance, result.First().ChangeTrackingManager).ToList();
+            
+            var boolEditable = result.OfType<EditableBool>().First(x =>
+                x.PropertyInfo.Name == nameof(ClassWithVariableSpecifiedType.CanBeAnythingIsComplex));
+
+            var reflectedAnything = result.OfType<IEditableComplex>().First();
+            var reflectedAnything2 = doubleReflected.OfType<IEditableComplex>().First();
+
+            boolEditable.Value = true;
+
+            Assert.That(reflectedAnything.SubEditables.Any(x => x is EditableInt), Is.True);
+            Assert.That(reflectedAnything2.SubEditables.Any(x => x is EditableInt), Is.True);
         }
 
         [Test]

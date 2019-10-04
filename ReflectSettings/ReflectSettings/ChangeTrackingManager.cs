@@ -15,6 +15,7 @@ namespace ReflectSettings
         {
             CollectionChanged += OnCollectionChanged;
             _registeredInstancesWithEditables = new Dictionary<INotifyPropertyChanged, Dictionary<PropertyInfo, IEditableConfig>>();
+            _asyncSynchronizer = new AsyncSynchronizer();
         }
 
         public event EventHandler ConfigurationChanged;
@@ -115,7 +116,7 @@ namespace ReflectSettings
         {
             if (e.PropertyName != nameof(IEditableConfig.Value) && e.PropertyName != nameof(IEditableCollection.SelectedValue))
                 return;
-            if (_suppressEvents)
+            if (_suppressEvents || _asyncSynchronizer.IsBusy)
                 return;
             _suppressEvents = true;
 
@@ -124,11 +125,14 @@ namespace ReflectSettings
                 config.UpdateCalculatedValues();
             }
 
+            _asyncSynchronizer.UpdateAll(this);
+
             _suppressEvents = false;
             ConfigurationChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private readonly Dictionary<INotifyPropertyChanged, Dictionary<PropertyInfo, IEditableConfig>> _registeredInstancesWithEditables;
+        private AsyncSynchronizer _asyncSynchronizer;
 
         public void RegisterPropertyChangedListener(INotifyPropertyChanged configurable, IEditableConfig editableConfig)
         {

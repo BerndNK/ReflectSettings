@@ -24,7 +24,7 @@ namespace ReflectSettingsTests.Attributes
             [UsedImplicitly]
             public async Task<IEnumerable<object>> IntRestrictionsValues()
             {
-                while (CalculationBlock) await Task.Delay(500);
+                while (CalculationBlock) await Task.Delay(50);
 
                 return new List<object> {5, 10};
             }
@@ -132,7 +132,7 @@ namespace ReflectSettingsTests.Attributes
         }
 
         [Test]
-        public void IntPropertyWithCalculatedValuesAsyncDoesNotAllowNotCalculatedValue()
+        public async Task IntPropertyWithCalculatedValuesAsyncDoesNotAllowNotCalculatedValue()
         {
             var result = Produce<ClassWithCalculatedValuesAsync>(out var instance);
 
@@ -141,6 +141,8 @@ namespace ReflectSettingsTests.Attributes
             instance.CalculationBlock = true;
             const int someValue = 12;
             toTest.Value = someValue;
+            instance.CalculationBlock = false;
+            await WaitWithTimeout(WaitUntilNotBusy(toTest), 1000);
 
             Assert.That(toTest.IsBusy, Is.False);
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));
@@ -213,7 +215,7 @@ namespace ReflectSettingsTests.Attributes
         }
 
         [Test]
-        public void StringPropertyWithCalculatedValuesAsyncDoesNotAllowNotCalculatedValue()
+        public async Task StringPropertyWithCalculatedValuesAsyncDoesNotAllowNotCalculatedValue()
         {
             var result = Produce<ClassWithCalculatedValuesAsync>(out var instance);
 
@@ -222,6 +224,8 @@ namespace ReflectSettingsTests.Attributes
             instance.CalculationBlock = true;
             const string someValue = "anything";
             toTest.Value = someValue;
+            instance.CalculationBlock = false;
+            await WaitWithTimeout(WaitUntilNotBusy(toTest), 1000);
 
             Assert.That(toTest.IsBusy, Is.False);
             Assert.That(toTest.Value, Is.Not.EqualTo(someValue));

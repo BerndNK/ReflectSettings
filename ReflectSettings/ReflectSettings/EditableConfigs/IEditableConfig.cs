@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
+using System.Threading.Tasks;
 using ReflectSettings.Attributes;
 using ReflectSettings.EditableConfigs.InheritingAttribute;
 using ReflectSettings.Utils;
@@ -32,6 +33,8 @@ namespace ReflectSettings.EditableConfigs
 
         void UpdateCalculatedValues();
 
+        Task UpdateCalculatedValuesAsync();
+
         event EventHandler<EditableConfigValueChangedEventArgs> ValueChanged;
 
         string DisplayName { get; }
@@ -50,6 +53,7 @@ namespace ReflectSettings.EditableConfigs
         void ValueWasExternallyChanged();
 
         string HashCode { get; }
+
         object ForInstance { get; set; }
     }
 }

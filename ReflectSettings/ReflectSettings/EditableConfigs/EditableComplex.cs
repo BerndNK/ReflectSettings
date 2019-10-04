@@ -55,11 +55,13 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
+        private Type _typeEditablesWereCreatedFor;
         protected virtual void CreateSubEditables(T fromInstance)
         {
             ClearSubEditables();
             if (fromInstance != null)
             {
+                _typeEditablesWereCreatedFor = fromInstance.GetType();
                 var subEditables = Factory.Reflect(fromInstance, ChangeTrackingManager).ToList();
                 foreach (var item in subEditables)
                 {
@@ -130,6 +132,9 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
                 editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
             }
+
+            if(_typeEditablesWereCreatedFor != Value?.GetType() && Value is T asT)
+                CreateSubEditables(asT);
         }
     }
 }

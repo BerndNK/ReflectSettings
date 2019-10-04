@@ -35,7 +35,7 @@ namespace FrontendDemo
             if (Url == _lastUrl)
                 return new List<object> {_lastHtmlResult};
             var httpClient = new HttpClient();
-            await Task.Delay(1000);
+            await Task.Delay(4000);
             try
             {
                 var x = new WebClient();

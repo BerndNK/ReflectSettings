@@ -128,27 +128,7 @@ namespace ReflectSettings.EditableConfigs
 
             if (CalculatedValuesAsync.ForThis.Any())
             {
-                if (_currentlyRunningCalculatingValuesTask != null &&
-                    _currentlyRunningCalculatingValuesTask.Status != TaskStatus.RanToCompletion)
-                {
-                    _taskThatCameInWhileAnotherWasStillRunning = UpdateCalculatedValuesAsync;
-                    return;
-                }
-
-                var task = UpdateCalculatedValuesAsync();
-                lock (_currentRunningThreadMutex)
-                {
-                    if (_currentlyRunningCalculatingValuesTask != null)
-                    {
-                        _taskThatCameInWhileAnotherWasStillRunning = UpdateCalculatedValuesAsync;
-                    }
-                    else
-                    {
-                        if (task.Status != TaskStatus.RanToCompletion)
-                            _currentlyRunningCalculatingValuesTask = task;
-                    }
-                }
-
+                IsBusy = true;
                 return;
             }
 
@@ -189,19 +169,19 @@ namespace ReflectSettings.EditableConfigs
             }
         }
 
-        private Task _currentlyRunningCalculatingValuesTask = null;
-        private Mutex _currentRunningThreadMutex = new Mutex();
-        private Func<Task> _taskThatCameInWhileAnotherWasStillRunning = null;
         private bool _loadingValuesAsync;
 
         public async Task UpdateCalculatedValuesAsync()
         {
+            if (!CalculatedValuesAsync.ForThis.Any())
+                return;
+
             IsBusy = true;
+            _loadingValuesAsync = true;
 
             var existingValues = PredefinedValues.ToList();
             var newValues = GetPredefinedValues().OfType<object>().ToList();
 
-            _loadingValuesAsync = true;
             foreach (var asyncValues in CalculatedValuesAsync.ForThis)
             {
                 var result = await asyncValues.ResolveValuesAsync(CalculatedValuesAsync.Inherited);
@@ -234,24 +214,9 @@ namespace ReflectSettings.EditableConfigs
 
             var valueTypeDiffersFromPredefined = Value?.GetType() != GetPredefinedType();
 
-
             if (somethingChanged || (HasCalculatedType && valueTypeDiffersFromPredefined))
             {
                 Value = Value;
-            }
-
-            if (_taskThatCameInWhileAnotherWasStillRunning != null)
-            {
-                var taskMethod = _taskThatCameInWhileAnotherWasStillRunning;
-                _taskThatCameInWhileAnotherWasStillRunning = null;
-
-                await taskMethod();
-                Value = Value;
-            }
-
-            lock (_currentRunningThreadMutex)
-            {
-                _currentlyRunningCalculatingValuesTask = null;
             }
 
             IsBusy = false;
