@@ -16,7 +16,8 @@ namespace ReflectSettings.EditableConfigs
             {
                 if (IsValueAllowed(asT))
                 {
-                    CreateSubEditables(asT);
+                    if(!ReferenceEquals(Value, asT) || !SubEditables.Any())
+                        CreateSubEditables(asT);
                     return asT;
                 }
                 else if (Value is T currentValue && IsValueAllowed(currentValue))

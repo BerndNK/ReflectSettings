@@ -88,7 +88,7 @@ namespace ReflectSettings.EditableConfigs
 
             if (AsCollection.Contains(asT))
             {
-                if(Remove(asT))
+                if (Remove(asT))
                     CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new List<TItem> {asT}));
             }
         }
@@ -105,7 +105,8 @@ namespace ReflectSettings.EditableConfigs
             {
                 if (IsValueAllowed(asT))
                 {
-                    CreateSubEditables(asT);
+                    if (!ReferenceEquals(Value, asT) || !SubEditables.Any())
+                        CreateSubEditables(asT);
                     return asT;
                 }
                 else if (Value is TCollection currentValue && IsValueAllowed(currentValue))
@@ -249,17 +250,15 @@ namespace ReflectSettings.EditableConfigs
                 editable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
                 editable.CalculatedTypes.InheritFrom(CalculatedTypes);
                 editable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
-
             }
 
             if (ItemToAddEditable == null)
                 return;
-            
+
             ItemToAddEditable.CalculatedValues.InheritFrom(CalculatedValues);
             ItemToAddEditable.CalculatedValuesAsync.InheritFrom(CalculatedValuesAsync);
             ItemToAddEditable.CalculatedTypes.InheritFrom(CalculatedTypes);
             ItemToAddEditable.CalculatedVisibility.InheritFrom(CalculatedVisibility);
-
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
