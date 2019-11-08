@@ -39,7 +39,7 @@ namespace ReflectSettings.Attributes
             }
         }
 
-        public MinMaxAttribute() : this(0, int.MaxValue)
+        public MinMaxAttribute() : this(int.MinValue, int.MaxValue)
         {}
     }
 }
